@@ -1967,6 +1967,10 @@ async function sendMessageInternal(
   effect
 ) {
 
+  message = typeof message === 'string'
+    ? message.normalize('NFC')
+    : String(message ?? '');
+
   if (!client) {
     await connectTelegram();
   }
@@ -2087,6 +2091,10 @@ async function scheduleMessageInternal(
   silent = false,
   effect
 ) {
+
+  message = typeof message === 'string'
+    ? message.normalize('NFC')
+    : String(message ?? '');
 
   if (!client) {
     await connectTelegram();

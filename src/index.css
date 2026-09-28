@@ -166,7 +166,7 @@ body:has(.auth-panel) {
 .status {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   min-width: 0;
   padding: 2px 0;
 }
@@ -217,25 +217,11 @@ body:has(.auth-panel) {
   align-items: center;
   justify-content: center;
   position: relative;
+  transition: color 0.18s ease, background 0.18s ease;
 }
 
 .action-label {
   line-height: 1;
-}
-
-.settings-action::after,
-.account-action::after {
-  content: "";
-  position: absolute;
-  right: 12px;
-  bottom: 7px;
-  left: 12px;
-  height: 1px;
-  background: rgba(223, 232, 241, 0.28);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.24s ease, opacity 0.24s ease;
-  opacity: 0.7;
 }
 
 .settings-action {
@@ -251,14 +237,7 @@ body:has(.auth-panel) {
 .account-action:hover,
 .account-action:focus-visible {
   background: rgba(154, 168, 184, 0.02);
-}
-
-.settings-action:hover::after,
-.settings-action:focus-visible::after,
-.account-action:hover::after,
-.account-action:focus-visible::after {
-  transform: scaleX(1);
-  opacity: 1;
+  color: rgba(245, 248, 250, 0.98);
 }
 
 .settings-action:focus-visible,
@@ -391,7 +370,7 @@ body:has(.auth-panel) {
   padding: 0;
   display: flex;
   justify-content: flex-start;
-  transform: translateX(20px);
+  transform: translateX(10px);
 }
 
 .returning-user-copy {
@@ -872,14 +851,14 @@ body:has(.auth-panel) {
 .auth-brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   position: fixed;
   top: 32px;
   left: 90px;
   z-index: 4;
   color: #edf2f5;
   font-family: "Avenir Next", "Segoe UI Light", "Helvetica Neue", Arial, sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 350;
   letter-spacing: 0.3em;
   line-height: 1;
@@ -889,8 +868,8 @@ body:has(.auth-panel) {
 }
 
 .auth-brand-mark {
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
@@ -1888,7 +1867,7 @@ textarea {
   overflow: hidden;
   color: rgba(226, 230, 235, 0.32);
   font-family: var(--sans);
-  font-size: clamp(32px, 3.1vw, 54px);
+  font-size: clamp(30px, 2.9vw, 50px);
   font-weight: 300;
   letter-spacing: -0.055em;
   line-height: 1.08;
@@ -1994,22 +1973,217 @@ textarea {
 }
 
 .message-field-meta .message-attachment-button {
-  order: 1;
   width: 20px;
   height: 20px;
+  padding: 0;
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: rgba(216, 242, 220, 0.9);
-  transition: color 0.18s ease;
+  color: rgba(206, 216, 228, 0.78);
+  order: 1;
 }
 
 .message-field-meta .message-attachment-button:hover,
 .message-field-meta .message-attachment-button:focus-visible {
   border-color: transparent;
-  background: transparent;
-  color: rgba(216, 242, 220, 0.9);
+  background: rgba(154, 168, 184, 0.08);
+  color: rgba(245, 248, 250, 0.96);
   transform: none;
+}
+
+.message-field-meta .message-attachment-smile-button {
+  order: 2;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(206, 216, 228, 0.78);
+  transform: translateX(8px);
+  transition: color 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-field-meta .message-attachment-smile {
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  color: inherit;
+}
+
+.message-field-meta .message-attachment-smile-button:hover,
+.message-field-meta .message-attachment-smile-button:focus-visible {
+  border-color: transparent;
+  background: rgba(154, 168, 184, 0.08);
+  color: rgba(245, 248, 250, 0.96);
+  outline: none;
+}
+
+.message-field-meta .message-attachment-button,
+.message-field-meta .message-attachment-smile-button,
+.message-field-meta .message-send-button {
+  transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.message-field-meta .message-attachment-button:hover,
+.message-field-meta .message-attachment-button:focus-visible,
+.message-field-meta .message-attachment-smile-button:hover,
+.message-field-meta .message-attachment-smile-button:focus-visible,
+.message-field-meta .message-send-button:hover,
+.message-field-meta .message-send-button:focus-visible {
+  background: rgba(154, 168, 184, 0.12);
+  color: rgba(245, 248, 250, 0.98);
+  box-shadow: inset 0 0 0 1px rgba(220, 232, 242, 0.12);
+  outline: none;
+}
+
+.message-emoji-picker-shell {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 28px;
+  z-index: 30;
+  width: 436px;
+  max-width: min(436px, calc(100vw - 32px));
+  height: min(205px, calc(100vh - 120px));
+  max-height: min(205px, calc(100vh - 120px));
+}
+
+.message-emoji-picker {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  display: block;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 10px 10px 18px;
+  border: 1px solid rgba(116, 124, 136, 0.36);
+  border-radius: 12px;
+  background: rgba(31, 32, 34, 0.98);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  isolation: isolate;
+}
+
+.message-emoji-picker.is-expanded {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(154, 168, 184, 0.56) transparent;
+}
+
+.message-emoji-pages {
+  display: flex;
+  width: max-content;
+  gap: 5px;
+}
+
+.message-emoji-page {
+  display: grid;
+  grid-template-columns: repeat(9, 40px);
+  grid-template-rows: repeat(4, 40px);
+  gap: 5px;
+  width: 400px;
+  height: 175px;
+  flex: 0 0 400px;
+}
+
+.message-emoji-picker.is-expanded::-webkit-scrollbar {
+  height: 6px;
+}
+
+.message-emoji-picker.is-expanded::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: rgba(154, 168, 184, 0.56);
+}
+
+.message-emoji-option {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.38);
+  filter: saturate(1.12) contrast(1.06);
+  cursor: pointer;
+  transform: translateY(4px);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.message-emoji-option:hover,
+.message-emoji-option:focus-visible {
+  background: rgba(111, 119, 130, 0.32);
+  outline: none;
+  transform: translateY(4px);
+}
+
+.message-emoji-option.is-recent {
+  background: rgba(111, 119, 130, 0.12);
+}
+
+.message-emoji-close {
+  position: absolute;
+  top: -2px;
+  right: 2px;
+  z-index: 2;
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(226, 232, 238, 0.62);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.message-emoji-close:hover,
+.message-emoji-close:focus-visible {
+  background: rgba(111, 119, 130, 0.22);
+  color: rgba(255, 255, 255, 0.96);
+  outline: none;
+}
+
+.message-emoji-more {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: inline-flex;
+  width: 28px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(226, 232, 238, 0.72);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.message-emoji-more:hover,
+.message-emoji-more:focus-visible {
+  background: rgba(111, 119, 130, 0.22);
+  color: rgba(255, 255, 255, 0.96);
+  outline: none;
 }
 
 .message-field-meta .message-attachments {
@@ -2031,13 +2205,27 @@ textarea {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  transform: translateX(-9px) scaleX(0.86);
+  transform: translateX(39px) scaleX(0.86);
   transform-origin: right center;
 }
 
 .message-field-meta .message-send-button {
   order: 4;
   flex: 0 0 20px;
+  color: rgba(206, 216, 228, 0.78);
+}
+
+.message-composer-timezone {
+  position: absolute;
+  right: 20px;
+  bottom: -18px;
+  color: rgba(183, 194, 204, 0.5);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(87px);
 }
 
 .message-send-control {
@@ -2131,7 +2319,6 @@ textarea {
   margin-top: 6px;
   color: inherit;
   font-family: var(--sans);
-  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.2;
@@ -2326,6 +2513,42 @@ textarea {
 .message-options-menu button:disabled {
   color: rgba(122, 130, 140, 0.42);
   cursor: default;
+}
+
+.message-options-menu,
+.message-effect-menu {
+  border-color: rgba(116, 124, 136, 0.36);
+  border-radius: 12px;
+  background: rgba(31, 32, 34, 0.98);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+.message-options-menu button,
+.message-effect-menu button {
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.message-options-menu button + button,
+.message-effect-menu button + button {
+  border-top: 0;
+}
+
+.message-options-menu button:hover:not(:disabled),
+.message-options-menu button:focus-visible,
+.message-effect-menu button:hover,
+.message-effect-menu button:focus-visible {
+  border-bottom-color: transparent;
+  background: rgba(111, 119, 130, 0.22);
+  color: rgba(236, 242, 247, 0.98);
+}
+
+.message-options-menu button.is-selected,
+.message-effect-menu button.is-selected {
+  border-bottom-color: transparent;
+  background: rgba(111, 119, 130, 0.16);
+  color: rgba(236, 242, 247, 0.96);
 }
 
 .message-history-option-icon {
@@ -2995,6 +3218,43 @@ textarea:focus-visible {
   letter-spacing: 0.16em !important;
   line-height: 1 !important;
   text-transform: uppercase !important;
+}
+
+.message-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  flex: 0 0 24px;
+  margin-bottom: 8px;
+}
+
+.message-label-row .composer-field-label {
+  margin-bottom: 0 !important;
+}
+
+.message-clear-button {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(206, 216, 228, 0.78);
+  cursor: pointer;
+  transform: translateX(20px);
+  transition: color 0.18s ease, background 0.18s ease;
+}
+
+.message-clear-button:hover,
+.message-clear-button:focus-visible {
+  background: rgba(154, 168, 184, 0.1);
+  color: rgba(245, 248, 250, 0.98);
+  outline: none;
 }
 
 .message-field > .composer-field-label {
@@ -3937,10 +4197,11 @@ textarea:focus-visible {
 .message-attachments.has-attachments {
   opacity: 1;
   visibility: visible;
-  overflow: hidden;
+  overflow: visible;
   width: auto;
   max-width: none;
   flex: none;
+  transform: translateX(40px);
 }
 
 .message-attachments:not(.has-attachments) {
@@ -4113,7 +4374,12 @@ textarea:focus-visible {
   }
 
   .message-field-meta .message-send-control {
-    margin-right: -44px;
+    margin-right: 0;
+    transform: translateX(45px);
+  }
+
+  .message-field-meta .message-send-button {
+    margin-right: 0;
   }
 
   .message-placeholder {
@@ -4151,6 +4417,11 @@ textarea:focus-visible {
     font-size: clamp(20px, 6vw, 24px);
     letter-spacing: -0.025em;
     line-height: 1.35;
+  }
+
+
+  .message-field-meta .message-attachments.has-attachments::-webkit-scrollbar {
+    display: none;
   }
 
   .message-placeholder {
@@ -4366,14 +4637,14 @@ textarea:focus-visible {
   justify-content: center;
   min-height: 180px;
   padding: 28px 12px 30px;
-  color: rgba(226, 230, 235, 0.18);
+  color: rgba(226, 230, 235, 0.32);
   font-family: var(--sans);
-  font-size: clamp(14px, 1.4vw, 18px);
+  font-size: clamp(16px, 1.8vw, 22px);
   font-weight: 200;
   letter-spacing: -0.02em;
   line-height: 1.2;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .empty-state-message {
@@ -4382,6 +4653,15 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: clamp(15px, 1.6vw, 19px);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .empty-state-message {
+    font-size: inherit;
+    white-space: normal;
+  }
 }
 
 .empty-state-timezone {

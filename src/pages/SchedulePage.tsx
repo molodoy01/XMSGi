@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import { CalendarDays, Clock, Menu, Paperclip, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, Clock, Menu, Paperclip, Smile, X } from 'lucide-react';
 import xmsgiLogoWhite from '@/assets/xmsgi-logo-white.svg';
 import { Notification } from '@/components/Notification';
 import { ChatPicker } from '@/components/ChatPicker';
@@ -14,6 +14,31 @@ import type { Chat, ChatPermissions, NotificationState, ScheduledMessage } from 
 import { shouldShowTopbar } from '@/lib/authLayout';
 import { useLocale } from '@/lib/i18n';
 import { getMessageEffectPayload, isEffectSelectionIncomplete } from '@/lib/messageEffects';
+import { getTimezoneLabel } from '@/lib/utils';
+
+const COMMON_EMOJIS = [
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '🙂', '🙃', '😉',
+  '😌', '😍', '🥰', '😘', '😎', '🤔', '🤗', '🤩', '😢', '😭', '😡', '😱',
+  '👍', '👎', '👏', '🙏', '💪', '🔥', '❤️', '💔', '✨', '⭐', '🎉', '✅',
+];
+
+const MORE_EMOJIS = [
+  '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮',
+  '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🐧', '🐦', '🦄', '🐝', '🦋',
+  '🍏', '🍎', '🍌', '🍉', '🍇', '🍓', '🍕', '🍔', '🍟', '🍩', '🍰', '☕',
+  '⚽', '🏀', '🏆', '🎸', '🎮', '🚗', '✈️', '🚀', '🌈', '☀️', '🌙', '🌍',
+];
+
+const RECENT_EMOJIS_STORAGE_PREFIX = 'xmsgi:recent-emojis:';
+const ATTACHMENT_DRAFT_STORAGE_PREFIX = 'xmsgi:attachment-draft:';
+
+function getRecentEmojisStorageKey(chatId?: string) {
+  return `${RECENT_EMOJIS_STORAGE_PREFIX}${chatId ?? 'no-chat'}`;
+}
+
+function getAttachmentDraftStorageKey(chatId?: string) {
+  return `${ATTACHMENT_DRAFT_STORAGE_PREFIX}${chatId ?? 'no-chat'}`;
+}
 
 type SchedulePageProps = {
   message: string;
@@ -183,10 +208,15 @@ export function SchedulePage(props: SchedulePageProps) {
   const timeDisplayRef = useRef<HTMLDivElement>(null);
   const timeMenuRef = useRef<HTMLDivElement>(null);
   const messageOptionsRef = useRef<HTMLDivElement>(null);
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
   const effectMenuRef = useRef<HTMLDivElement>(null);
   const messageOptionsButtonRef = useRef<HTMLButtonElement>(null);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [messageOptionsOpen, setMessageOptionsOpen] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [availableEmojis, setAvailableEmojis] = useState<string[]>([]);
+  const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [showMoreEmojis, setShowMoreEmojis] = useState(false);
   const [selectedMessageOption, setSelectedMessageOption] = useState<'silent' | 'effect' | null>(null);
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [availableEffects, setAvailableEffects] = useState<Array<{ id: string; emoticon: string; premiumRequired: boolean }>>([]);
@@ -200,6 +230,7 @@ export function SchedulePage(props: SchedulePageProps) {
   const [dateYear, dateMonth, dateDay] = date.split('-');
   const [timeHours, timeMinutes] = time.split(':');
   const [attachments, setAttachments] = useState<Array<{ name: string; path: string }>>([]);
+  const restoringAttachmentsRef = useRef(false);
   const [previewAttachmentIndex, setPreviewAttachmentIndex] = useState<number | null>(null);
   const [previewPosition, setPreviewPosition] = useState<{ left: number; top: number } | null>(null);
   const previewHoverTimerRef = useRef<number | null>(null);
@@ -211,6 +242,77 @@ export function SchedulePage(props: SchedulePageProps) {
   const premiumEffects = availableEffects.filter((effect) => effect.premiumRequired === true);
   const freeEffects = availableEffects.filter((effect) => effect.premiumRequired !== true);
   const messageMaxLength = getMessageMaxLength(attachments.length > 0);
+  const emojiList = [
+    ...recentEmojis,
+    ...availableEmojis.filter((emoji) => !recentEmojis.includes(emoji)),
+  ];
+  const displayedEmojiList = emojiList;
+  const emojiPages = Array.from(
+    { length: Math.max(1, Math.ceil(displayedEmojiList.length / 36)) },
+    (_, pageIndex) => displayedEmojiList.slice(pageIndex * 36, pageIndex * 36 + 36),
+  );
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(getRecentEmojisStorageKey(selectedChat?.id));
+      const parsed = stored ? JSON.parse(stored) : [];
+      if (Array.isArray(parsed)) {
+        setRecentEmojis(parsed.filter((emoji): emoji is string => typeof emoji === 'string').slice(0, 5));
+      }
+    } catch {
+      setRecentEmojis([]);
+    }
+  }, [selectedChat?.id]);
+
+  useEffect(() => {
+    restoringAttachmentsRef.current = true;
+
+    if (!selectedChat?.id) {
+      setAttachments([]);
+      return;
+    }
+
+    try {
+      const stored = window.localStorage.getItem(getAttachmentDraftStorageKey(selectedChat.id));
+      const parsed = stored ? JSON.parse(stored) : [];
+      const restored = Array.isArray(parsed)
+        ? parsed
+          .filter((attachment): attachment is { name: string; path: string } => (
+            Boolean(attachment)
+            && typeof attachment.name === 'string'
+            && typeof attachment.path === 'string'
+          ))
+          .slice(0, MAX_ATTACHMENTS)
+        : [];
+      setAttachments(restored);
+    } catch {
+      setAttachments([]);
+    }
+  }, [selectedChat?.id]);
+
+  useEffect(() => {
+    if (restoringAttachmentsRef.current) {
+      restoringAttachmentsRef.current = false;
+      return;
+    }
+
+    if (!selectedChat?.id) return;
+
+    const storageKey = getAttachmentDraftStorageKey(selectedChat.id);
+    const timeoutId = window.setTimeout(() => {
+      try {
+        if (attachments.length) {
+          window.localStorage.setItem(storageKey, JSON.stringify(attachments));
+        } else {
+          window.localStorage.removeItem(storageKey);
+        }
+      } catch {
+        // Attachment drafts remain optional if storage is unavailable.
+      }
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [attachments, selectedChat?.id]);
 
   useEffect(() => {
     setMessage((current) => limitMessageText(current, messageMaxLength));
@@ -276,6 +378,45 @@ export function SchedulePage(props: SchedulePageProps) {
       resetMessageOptionsRef.current = false;
     }
     setMessage(nextMessage);
+  };
+
+  const handleEmojiPickerToggle = () => {
+    if (!availableEmojis.length) {
+      setAvailableEmojis(COMMON_EMOJIS);
+    }
+    setEmojiPickerOpen((current) => !current);
+  };
+
+  const handleMoreEmojis = () => {
+    setAvailableEmojis((current) => [...current, ...MORE_EMOJIS]);
+    setShowMoreEmojis(true);
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setRecentEmojis((current) => {
+      const next = [emoji, ...current.filter((recentEmoji) => recentEmoji !== emoji)].slice(0, 5);
+      try {
+        window.localStorage.setItem(getRecentEmojisStorageKey(selectedChat?.id), JSON.stringify(next));
+      } catch {
+        // Recent emojis are optional when storage is unavailable.
+      }
+      return next;
+    });
+
+    const textarea = messageTextareaRef.current;
+    const selectionStart = textarea?.selectionStart ?? message.length;
+    const selectionEnd = textarea?.selectionEnd ?? message.length;
+    const nextMessage = limitMessageText(
+      `${message.slice(0, selectionStart)}${emoji}${message.slice(selectionEnd)}`,
+      messageMaxLength,
+    );
+    handleComposerMessageChange(nextMessage);
+    setEmojiPickerOpen(false);
+    requestAnimationFrame(() => {
+      textarea?.focus();
+      const cursorPosition = Math.min(selectionStart + emoji.length, nextMessage.length);
+      textarea?.setSelectionRange(cursorPosition, cursorPosition);
+    });
   };
 
   const dateTimeKeyboardRefs: Record<DateTimeKeyboardField, MutableRefObject<HTMLInputElement | null>> = {
@@ -594,16 +735,6 @@ export function SchedulePage(props: SchedulePageProps) {
                 RU
               </button>
             </div>
-            <button
-              type="button"
-              className="auth-settings-button"
-              onClick={() => {
-                setShowAuthForm(false);
-                onOpenSettings();
-              }}
-            >
-              {t('topbar.settings')}
-            </button>
             <div className="auth-intro">
               <div className="auth-hero-copy" aria-label={t('hero.signInIntro')}>
                 <span className="auth-hero-line auth-hero-line-main">
@@ -849,11 +980,25 @@ export function SchedulePage(props: SchedulePageProps) {
               </div>
 
               <div className="field message-field">
-                <label className="composer-field-label">{t('composer.messageLabel')}</label>
+                <div className="message-label-row">
+                  <label className="composer-field-label">{t('composer.messageLabel')}</label>
+                  {message && (
+                    <button
+                      type="button"
+                      className="message-clear-button"
+                      aria-label="Clear message"
+                      title="Clear message"
+                      onClick={() => setMessage('')}
+                    >
+                      <X size={16} strokeWidth={2} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
 
                 <div className="message-input-wrap">
                   {!message && <span className="message-placeholder" aria-hidden="true">{t('composer.messagePlaceholder')}</span>}
                   <textarea
+                    ref={messageTextareaRef}
                     value={message}
                     disabled={selectedChatPermissions?.canSend === false}
                     title={selectedChatPermissions?.canSend === false ? t('chat.cannotSendReason') : undefined}
@@ -886,6 +1031,63 @@ export function SchedulePage(props: SchedulePageProps) {
                     >
                       <Paperclip size={17} strokeWidth={1.8} aria-hidden="true" />
                     </button>
+                    <button
+                      type="button"
+                      className="message-attachment-smile-button"
+                      aria-label="Emoji"
+                      title="Emoji"
+                      onClick={handleEmojiPickerToggle}
+                    >
+                      <Smile className="message-attachment-smile" size={17} strokeWidth={1.8} aria-hidden="true" />
+                    </button>
+                    {emojiPickerOpen && (
+                      <div className="message-emoji-picker-shell">
+                        <button
+                          type="button"
+                          className="message-emoji-close"
+                          aria-label="Close emoji picker"
+                          title="Close"
+                          onClick={() => setEmojiPickerOpen(false)}
+                        >
+                          <X size={14} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                        <div
+                          className={`message-emoji-picker ${showMoreEmojis ? 'is-expanded' : ''}`}
+                          role="dialog"
+                          aria-label="Emoji picker"
+                        >
+                          <div className="message-emoji-pages">
+                            {emojiPages.map((page, pageIndex) => (
+                              <div className="message-emoji-page" key={`emoji-page-${pageIndex}`}>
+                                {page.map((emoji, index) => (
+                                  <button
+                                    type="button"
+                                    className={`message-emoji-option ${recentEmojis.includes(emoji) ? 'is-recent' : ''}`}
+                                    key={`${emoji}-${pageIndex}-${index}`}
+                                    aria-label={`Insert ${emoji}`}
+                                    onMouseDown={(event) => event.preventDefault()}
+                                    onClick={() => handleEmojiSelect(emoji)}
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                          {!showMoreEmojis && (
+                            <button
+                              type="button"
+                              className="message-emoji-more"
+                              aria-label="Show more emojis"
+                              title="More emojis"
+                              onClick={handleMoreEmojis}
+                            >
+                              <ChevronRight size={18} aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className={`message-attachments ${attachments.length ? 'has-attachments' : ''}`}>
@@ -1114,6 +1316,7 @@ export function SchedulePage(props: SchedulePageProps) {
                   </div>
                 </div>
                 </div>
+                <span className="message-composer-timezone">{getTimezoneLabel()}</span>
                 <input
                   ref={fileInputRef}
                   className="message-attachment-input"

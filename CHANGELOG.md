@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.3 - 2026-09-28
+
+- Updated project version references and release links.
+
 ## 2.2.0 - 2026-09-23
 
 ### Highlights

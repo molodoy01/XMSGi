@@ -9,8 +9,8 @@ const packageJson = JSON.parse(
 );
 
 describe('production packaging', () => {
-  it('publishes the XMSGi 2.2.0 portable package metadata', () => {
-    expect(packageJson.version).toBe('2.2.0');
+  it('publishes the XMSGi 2.2.3 portable package metadata', () => {
+    expect(packageJson.version).toBe('2.2.3');
     expect(packageJson.build.productName).toBe('XMSGi');
     expect(packageJson.build.icon).toBe('build/icon.ico');
     expect(packageJson.build.win.target).toEqual(['portable']);

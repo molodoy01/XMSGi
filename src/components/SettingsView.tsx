@@ -192,7 +192,7 @@ export function SettingsView({
             <p className="settings-view-description">
               {t('settings.aboutDescription')}
             </p>
-            <p className="settings-version">Version 2.1.7</p>
+            <p className="settings-version">Version 2.2.3</p>
           </section>
         </div>
       </main>

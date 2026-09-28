@@ -22,11 +22,18 @@ function getCurrentHashPath(): AppRoute {
   return '/';
 }
 
+const MESSAGE_DRAFT_STORAGE_PREFIX = 'xmsgi:message-draft:';
+
+function getMessageDraftStorageKey(chatId: string) {
+  return `${MESSAGE_DRAFT_STORAGE_PREFIX}${chatId}`;
+}
+
 function App() {
   const [message, setMessage] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [route, setRoute] = useState<AppRoute>(getCurrentHashPath());
   const [scheduleActiveTab, setScheduleActiveTab] = useState<'upcoming' | 'sent'>('upcoming');
+  const restoringDraftRef = useRef(false);
 
   const {
     notification,
@@ -92,6 +99,51 @@ function App() {
       setSelectedChat,
     };
   }, [setChats, setSelectedChat]);
+
+  useEffect(() => {
+    const chatId = selectedChat?.id;
+    restoringDraftRef.current = true;
+
+    if (!chatId) {
+      setMessage('');
+      return;
+    }
+
+    let draft = '';
+    try {
+      draft = window.localStorage.getItem(getMessageDraftStorageKey(chatId)) ?? '';
+    } catch {
+      draft = '';
+    }
+    setMessage(draft);
+  }, [selectedChat?.id]);
+
+  useEffect(() => {
+    if (restoringDraftRef.current) {
+      restoringDraftRef.current = false;
+      return;
+    }
+
+    const chatId = selectedChat?.id;
+    if (!chatId) {
+      return;
+    }
+
+    const storageKey = getMessageDraftStorageKey(chatId);
+    const timeoutId = window.setTimeout(() => {
+      try {
+        if (message) {
+          window.localStorage.setItem(storageKey, message);
+        } else {
+          window.localStorage.removeItem(storageKey);
+        }
+      } catch {
+        // Storage may be unavailable in restricted browser contexts.
+      }
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [message, selectedChat?.id]);
 
   const {
     assistantPrompt,

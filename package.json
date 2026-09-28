@@ -1,7 +1,7 @@
 {
   "name": "xmsgi",
   "private": true,
-  "version": "2.2.0",
+  "version": "2.2.3",
   "repository": "https://github.com/molodoy01/XMSGi",
   "type": "module",
   "scripts": {
