@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import { CalendarDays, ChevronRight, Clock, Menu, Paperclip, Smile, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Menu, Paperclip, Smile, X } from 'lucide-react';
 import xmsgiLogoWhite from '@/assets/xmsgi-logo-white.svg';
 import { Notification } from '@/components/Notification';
 import { ChatPicker } from '@/components/ChatPicker';
@@ -27,6 +27,14 @@ const MORE_EMOJIS = [
   '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🐧', '🐦', '🦄', '🐝', '🦋',
   '🍏', '🍎', '🍌', '🍉', '🍇', '🍓', '🍕', '🍔', '🍟', '🍩', '🍰', '☕',
   '⚽', '🏀', '🏆', '🎸', '🎮', '🚗', '✈️', '🚀', '🌈', '☀️', '🌙', '🌍',
+  '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠',
+  '🐟', '🐬', '🐳', '🦈', '🦭', '🐊', '🦓', '🦒', '🐘', '🦛', '🦏', '🦬',
+  '🥑', '🥝', '🥭', '🍍', '🥥', '🍑', '🍒', '🫐', '🍈', '🥕', '🌽', '🥦',
+  '🥬', '🥒', '🫑', '🍆', '🧄', '🧅', '🥔', '🍠', '🍞', '🥐', '🥨', '🧀',
+  '🚲', '🛴', '🛵', '🏍️', '🚙', '🚕', '🚓', '🚑', '🚒', '🚚', '🚜', '🚂',
+  '🚆', '🚇', '🚉', '🚁', '🛩️', '⛵', '🚤', '⚓', '🗽', '🏰', '🏝️', '⛰️',
+  '🎨', '🧵', '🧶', '🪡', '🪢', '🎹', '🎻', '🥁', '🎷', '🎺', '🪇', '🪘',
+  '🧩', '🎲', '♟️', '🎯', '🏹', '🥊', '🥋', '🛹', '🎿', '🏂', '🏄', '🏊',
 ];
 
 const RECENT_EMOJIS_STORAGE_PREFIX = 'xmsgi:recent-emojis:';
@@ -209,7 +217,8 @@ export function SchedulePage(props: SchedulePageProps) {
   const timeMenuRef = useRef<HTMLDivElement>(null);
   const messageOptionsRef = useRef<HTMLDivElement>(null);
   const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const effectMenuRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const effectMenuShellRef = useRef<HTMLDivElement>(null);
   const messageOptionsButtonRef = useRef<HTMLButtonElement>(null);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [messageOptionsOpen, setMessageOptionsOpen] = useState(false);
@@ -217,6 +226,8 @@ export function SchedulePage(props: SchedulePageProps) {
   const [availableEmojis, setAvailableEmojis] = useState<string[]>([]);
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
   const [showMoreEmojis, setShowMoreEmojis] = useState(false);
+  const [currentEmojiPage, setCurrentEmojiPage] = useState(0);
+  const [isEmojiScrollbarActive, setIsEmojiScrollbarActive] = useState(false);
   const [selectedMessageOption, setSelectedMessageOption] = useState<'silent' | 'effect' | null>(null);
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [availableEffects, setAvailableEffects] = useState<Array<{ id: string; emoticon: string; premiumRequired: boolean }>>([]);
@@ -251,6 +262,34 @@ export function SchedulePage(props: SchedulePageProps) {
     { length: Math.max(1, Math.ceil(displayedEmojiList.length / 36)) },
     (_, pageIndex) => displayedEmojiList.slice(pageIndex * 36, pageIndex * 36 + 36),
   );
+
+  useLayoutEffect(() => {
+    if (!emojiPickerOpen) return;
+
+    const picker = emojiPickerRef.current;
+    const targetPage = picker?.querySelectorAll<HTMLDivElement>('.message-emoji-page')[currentEmojiPage];
+    if (!picker || !targetPage) return;
+
+    const pickerBounds = picker.getBoundingClientRect();
+    const pageBounds = targetPage.getBoundingClientRect();
+    picker.scrollTo({
+      left: picker.scrollLeft + pageBounds.left - pickerBounds.left,
+      behavior: 'smooth',
+    });
+  }, [emojiPickerOpen, currentEmojiPage]);
+
+  useEffect(() => {
+    if (!isEmojiScrollbarActive) return;
+
+    const handlePointerRelease = () => setIsEmojiScrollbarActive(false);
+    window.addEventListener('pointerup', handlePointerRelease);
+    window.addEventListener('pointercancel', handlePointerRelease);
+
+    return () => {
+      window.removeEventListener('pointerup', handlePointerRelease);
+      window.removeEventListener('pointercancel', handlePointerRelease);
+    };
+  }, [isEmojiScrollbarActive]);
 
   useEffect(() => {
     try {
@@ -381,15 +420,30 @@ export function SchedulePage(props: SchedulePageProps) {
   };
 
   const handleEmojiPickerToggle = () => {
-    if (!availableEmojis.length) {
-      setAvailableEmojis(COMMON_EMOJIS);
+    if (emojiPickerOpen) {
+      setEmojiPickerOpen(false);
+      return;
     }
-    setEmojiPickerOpen((current) => !current);
+
+    setAvailableEmojis(COMMON_EMOJIS);
+    setShowMoreEmojis(false);
+    setCurrentEmojiPage(0);
+    setEmojiPickerOpen(true);
   };
 
   const handleMoreEmojis = () => {
-    setAvailableEmojis((current) => [...current, ...MORE_EMOJIS]);
-    setShowMoreEmojis(true);
+    if (!showMoreEmojis) {
+      setAvailableEmojis((current) => [...current, ...MORE_EMOJIS]);
+      setShowMoreEmojis(true);
+      setCurrentEmojiPage(1);
+      return;
+    }
+
+    setCurrentEmojiPage((current) => (current + 1) % emojiPages.length);
+  };
+
+  const handlePreviousEmojiPage = () => {
+    setCurrentEmojiPage((current) => Math.max(0, current - 1));
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -533,20 +587,22 @@ export function SchedulePage(props: SchedulePageProps) {
   }, [timePickerOpen]);
 
   useEffect(() => {
-    if (!messageOptionsOpen) return;
+    if (!messageOptionsOpen && !effectMenuOpen) return;
 
     const closeOnOutsideClick = (event: MouseEvent) => {
       if (
         !messageOptionsRef.current?.contains(event.target as Node)
-        && !effectMenuRef.current?.contains(event.target as Node)
+        && !effectMenuShellRef.current?.contains(event.target as Node)
         && !messageOptionsButtonRef.current?.contains(event.target as Node)
       ) {
         setMessageOptionsOpen(false);
+        setEffectMenuOpen(false);
       }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMessageOptionsOpen(false);
+        setEffectMenuOpen(false);
         messageOptionsButtonRef.current?.focus();
       }
     };
@@ -557,7 +613,7 @@ export function SchedulePage(props: SchedulePageProps) {
       document.removeEventListener('mousedown', closeOnOutsideClick);
       document.removeEventListener('keydown', closeOnEscape);
     };
-  }, [messageOptionsOpen]);
+  }, [effectMenuOpen, messageOptionsOpen]);
 
   useLayoutEffect(() => {
     if (!timePickerOpen) return;
@@ -1042,6 +1098,68 @@ export function SchedulePage(props: SchedulePageProps) {
                     </button>
                     {emojiPickerOpen && (
                       <div className="message-emoji-picker-shell">
+                        <div
+                          className={`message-emoji-picker ${showMoreEmojis ? 'is-expanded' : ''}`}
+                          role="dialog"
+                          aria-label="Emoji picker"
+                        >
+                          {currentEmojiPage > 0 && !isEmojiScrollbarActive && (
+                            <button
+                              type="button"
+                              className="message-emoji-previous"
+                              aria-label="Previous emoji page"
+                              title="Previous emoji page"
+                              onClick={handlePreviousEmojiPage}
+                            >
+                              <ChevronLeft size={18} aria-hidden="true" />
+                            </button>
+                          )}
+                          <div
+                            ref={emojiPickerRef}
+                            className="message-emoji-viewport"
+                            onPointerDown={(event) => {
+                              const picker = event.currentTarget;
+                              const bounds = picker.getBoundingClientRect();
+                              const scrollbarHeight = Math.max(picker.offsetHeight - picker.clientHeight, 8);
+                              if (event.clientY >= bounds.bottom - scrollbarHeight) {
+                                setIsEmojiScrollbarActive(true);
+                              }
+                            }}
+                          >
+                            <div className="message-emoji-pages">
+                              {emojiPages.map((page, pageIndex) => (
+                                <div
+                                  className="message-emoji-page"
+                                  key={`emoji-page-${pageIndex}`}
+                                >
+                                  {page.map((emoji, index) => (
+                                    <button
+                                      type="button"
+                                      className={`message-emoji-option ${recentEmojis.includes(emoji) ? 'is-recent' : ''}`}
+                                      key={`${emoji}-${pageIndex}-${index}`}
+                                      aria-label={`Insert ${emoji}`}
+                                      onMouseDown={(event) => event.preventDefault()}
+                                      onClick={() => handleEmojiSelect(emoji)}
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {!isEmojiScrollbarActive && (
+                            <button
+                              type="button"
+                              className="message-emoji-more"
+                              aria-label={showMoreEmojis ? 'Next emoji page' : 'Show more emojis'}
+                              title={showMoreEmojis ? 'Next emoji page' : 'More emojis'}
+                              onClick={handleMoreEmojis}
+                            >
+                              <ChevronRight size={18} aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
                         <button
                           type="button"
                           className="message-emoji-close"
@@ -1049,43 +1167,8 @@ export function SchedulePage(props: SchedulePageProps) {
                           title="Close"
                           onClick={() => setEmojiPickerOpen(false)}
                         >
-                          <X size={14} strokeWidth={2} aria-hidden="true" />
+                          <X size={20} strokeWidth={2} aria-hidden="true" />
                         </button>
-                        <div
-                          className={`message-emoji-picker ${showMoreEmojis ? 'is-expanded' : ''}`}
-                          role="dialog"
-                          aria-label="Emoji picker"
-                        >
-                          <div className="message-emoji-pages">
-                            {emojiPages.map((page, pageIndex) => (
-                              <div className="message-emoji-page" key={`emoji-page-${pageIndex}`}>
-                                {page.map((emoji, index) => (
-                                  <button
-                                    type="button"
-                                    className={`message-emoji-option ${recentEmojis.includes(emoji) ? 'is-recent' : ''}`}
-                                    key={`${emoji}-${pageIndex}-${index}`}
-                                    aria-label={`Insert ${emoji}`}
-                                    onMouseDown={(event) => event.preventDefault()}
-                                    onClick={() => handleEmojiSelect(emoji)}
-                                  >
-                                    {emoji}
-                                  </button>
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                          {!showMoreEmojis && (
-                            <button
-                              type="button"
-                              className="message-emoji-more"
-                              aria-label="Show more emojis"
-                              title="More emojis"
-                              onClick={handleMoreEmojis}
-                            >
-                              <ChevronRight size={18} aria-hidden="true" />
-                            </button>
-                          )}
-                        </div>
                       </div>
                     )}
                   </div>
@@ -1187,7 +1270,11 @@ export function SchedulePage(props: SchedulePageProps) {
                       aria-expanded={messageOptionsOpen}
                       aria-haspopup="menu"
                       title={t('composer.messageOptions')}
-                      onClick={() => setMessageOptionsOpen((current) => !current)}
+                      onClick={() => {
+                        const willOpen = !messageOptionsOpen;
+                        setMessageOptionsOpen(willOpen);
+                        if (willOpen) setEffectMenuOpen(false);
+                      }}
                     >
                       <Menu size={17} strokeWidth={1.8} aria-hidden="true" />
                     </button>
@@ -1215,6 +1302,7 @@ export function SchedulePage(props: SchedulePageProps) {
                           onClick={() => {
                             if (selectedMessageOption === 'effect') {
                               setSelectedMessageOption(null);
+                              setSelectedEffectId(null);
                               setEffectMenuOpen(false);
                               setMessageOptionsOpen(false);
                               return;
@@ -1229,11 +1317,12 @@ export function SchedulePage(props: SchedulePageProps) {
                       </div>
                     )}
                     {messageOptionsOpen && selectedMessageOption === 'effect' && effectMenuOpen && (
-                      <div ref={effectMenuRef} className="message-effect-menu" role="menu" aria-label={t('composer.effects')}>
-                        <div className="message-effect-menu-header">
-                          <span>{t('composer.effect')}</span>
-                          <span>{availableEffects.length}</span>
-                        </div>
+                      <div ref={effectMenuShellRef} className="message-effect-menu-shell">
+                        <div className="message-effect-menu" role="menu" aria-label={t('composer.effects')}>
+                          <div className="message-effect-menu-header">
+                            <span>{t('composer.effect')}</span>
+                            <span>{availableEffects.length}</span>
+                          </div>
                         <button
                           type="button"
                           className={!selectedEffectId ? 'is-selected' : ''}
@@ -1251,66 +1340,79 @@ export function SchedulePage(props: SchedulePageProps) {
                           <span className="message-option-label">{t('composer.withoutEffect')}</span>
                         </button>
 
-                        {effectsLoading ? (
-                          <div className="message-effect-status" role="status">{t('composer.effectsLoading')}</div>
-                        ) : (
-                          <>
-                            {freeEffects.length > 0 && (
-                              <div className="message-effect-section-label">{t('composer.free')}</div>
-                            )}
-                            {freeEffects.slice(0, 6).map((effect) => (
-                              <button
-                                key={effect.id}
-                                type="button"
-                                className={selectedEffectId === effect.id ? 'is-selected' : ''}
-                                role="menuitemradio"
-                                aria-checked={selectedEffectId === effect.id}
-                                onClick={() => {
-                                  const isAlreadySelected = selectedEffectId === effect.id;
-                                  setSelectedEffectId(isAlreadySelected ? null : effect.id);
-                                  setSelectedMessageOption(isAlreadySelected ? null : 'effect');
-                                  setEffectMenuOpen(false);
-                                  setMessageOptionsOpen(false);
-                                }}
-                              >
-                                <span className="message-option-icon" aria-hidden="true">{effect.emoticon}</span>
-                                <span className="message-option-label">{t('composer.effect')}</span>
-                              </button>
-                            ))}
-                            {premiumEffects.length > 0 && (
-                              <>
+                          {effectsLoading ? (
+                            <div className="message-effect-status" role="status">{t('composer.effectsLoading')}</div>
+                          ) : (
+                            <>
+                              {freeEffects.length > 0 && (
+                                <div className="message-effect-section-label">{t('composer.free')}</div>
+                              )}
+                              {freeEffects.slice(0, 6).map((effect) => (
                                 <button
+                                  key={effect.id}
                                   type="button"
-                                  className="message-effect-section-toggle"
-                                  aria-expanded={premiumEffectsOpen}
-                                  onClick={() => setPremiumEffectsOpen((current) => !current)}
+                                  className={selectedEffectId === effect.id ? 'is-selected' : ''}
+                                  role="menuitemradio"
+                                  aria-checked={selectedEffectId === effect.id}
+                                  onClick={() => {
+                                    const isAlreadySelected = selectedEffectId === effect.id;
+                                    setSelectedEffectId(isAlreadySelected ? null : effect.id);
+                                    setSelectedMessageOption(isAlreadySelected ? null : 'effect');
+                                    setEffectMenuOpen(false);
+                                    setMessageOptionsOpen(false);
+                                  }}
                                 >
-                                  <span className="message-effect-section-label">{t('composer.premium')}</span>
-                                  <span aria-hidden="true">{premiumEffectsOpen ? '⌃' : '⌄'}</span>
+                                  <span className="message-option-icon" aria-hidden="true">{effect.emoticon}</span>
+                                  <span className="message-option-label">{t('composer.effect')}</span>
                                 </button>
-                                {premiumEffectsOpen && premiumEffects.map((effect) => (
+                              ))}
+                              {premiumEffects.length > 0 && (
+                                <>
                                   <button
-                                    key={effect.id}
                                     type="button"
-                                    className={selectedEffectId === effect.id ? 'is-selected' : ''}
-                                    role="menuitemradio"
-                                    aria-checked={selectedEffectId === effect.id}
-                                    onClick={() => {
-                                      const isAlreadySelected = selectedEffectId === effect.id;
-                                      setSelectedEffectId(isAlreadySelected ? null : effect.id);
-                                      setSelectedMessageOption(isAlreadySelected ? null : 'effect');
-                                      setEffectMenuOpen(false);
-                                      setMessageOptionsOpen(false);
-                                    }}
+                                    className="message-effect-section-toggle"
+                                    aria-expanded={premiumEffectsOpen}
+                                    onClick={() => setPremiumEffectsOpen((current) => !current)}
                                   >
-                                    <span className="message-option-icon" aria-hidden="true">{effect.emoticon}</span>
-                                    <span className="message-option-label">{t('composer.premium')}</span>
+                                    <span className="message-effect-section-label">{t('composer.premium')}</span>
+                                    <span aria-hidden="true">{premiumEffectsOpen ? '⌃' : '⌄'}</span>
                                   </button>
-                                ))}
-                              </>
-                            )}
-                          </>
-                        )}
+                                  {premiumEffectsOpen && premiumEffects.map((effect) => (
+                                    <button
+                                      key={effect.id}
+                                      type="button"
+                                      className={selectedEffectId === effect.id ? 'is-selected' : ''}
+                                      role="menuitemradio"
+                                      aria-checked={selectedEffectId === effect.id}
+                                      onClick={() => {
+                                        const isAlreadySelected = selectedEffectId === effect.id;
+                                        setSelectedEffectId(isAlreadySelected ? null : effect.id);
+                                        setSelectedMessageOption(isAlreadySelected ? null : 'effect');
+                                        setEffectMenuOpen(false);
+                                        setMessageOptionsOpen(false);
+                                      }}
+                                    >
+                                      <span className="message-option-icon" aria-hidden="true">{effect.emoticon}</span>
+                                      <span className="message-option-label">{t('composer.premium')}</span>
+                                    </button>
+                                  ))}
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="message-emoji-close"
+                          aria-label={t('common.close')}
+                          title={t('common.close')}
+                          onClick={() => {
+                            setEffectMenuOpen(false);
+                            setMessageOptionsOpen(false);
+                          }}
+                        >
+                          <X size={20} strokeWidth={2} aria-hidden="true" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1446,7 +1548,7 @@ export function SchedulePage(props: SchedulePageProps) {
                     effect: getMessageEffectPayload(selectedMessageOption, selectedEffectId),
                   });
                 }}
-                disabled={scheduling || selectedChatPermissions?.canSend === false || selectedChatPermissions?.canSchedule === false}
+                disabled={emojiPickerOpen || scheduling || selectedChatPermissions?.canSend === false || selectedChatPermissions?.canSchedule === false}
               >
                 {scheduling ? t('composer.scheduling') : successPulse ? t('composer.sealed') : t('composer.seal')}
               </button>
