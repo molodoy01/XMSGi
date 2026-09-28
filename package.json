@@ -57,6 +57,7 @@
       "dist/**/*",
       "build/icon.ico",
       "build/icon.png",
+      "build/icon.icns",
       "build/icons/**/*",
       "main.cjs",
       "preload.cjs",
@@ -86,7 +87,7 @@
         "AppImage",
         "deb"
       ],
-      "icon": "build/icons",
+      "icon": "build/icons/512x512.png",
       "category": "Utility",
       "deb": {
         "depends": [
@@ -98,7 +99,7 @@
       "target": [
         "dmg"
       ],
-      "icon": "build/icon.png",
+      "icon": "build/icon.icns",
       "category": "public.app-category.productivity",
       "artifactName": "${productName}-${version}-mac.${ext}"
     },
