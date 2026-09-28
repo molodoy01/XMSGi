@@ -23,7 +23,7 @@ describe('production packaging', () => {
 
   it('configures Linux and macOS packages without replacing the Windows target', () => {
     expect(packageJson.scripts.dist).toBe('npm run build && electron-builder --win');
-    expect(packageJson.scripts['dist:linux']).toBe('npm run build && electron-builder --linux');
+    expect(packageJson.scripts['dist:linux']).toBe('npm run build && electron-builder --linux --publish never');
     expect(packageJson.scripts['dist:mac']).toBe('npm run build && electron-builder --mac --publish never');
     expect(packageJson.build.linux.target).toEqual(['AppImage', 'deb']);
     expect(packageJson.build.mac.target).toEqual(['dmg']);
