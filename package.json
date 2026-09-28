@@ -88,12 +88,12 @@
         "deb"
       ],
       "icon": "build/icons/512x512.png",
-      "category": "Utility",
-      "deb": {
-        "depends": [
-          "libsecret-1-0"
-        ]
-      }
+      "category": "Utility"
+    },
+    "deb": {
+      "depends": [
+        "libsecret-1-0"
+      ]
     },
     "mac": {
       "target": [

@@ -25,7 +25,7 @@ describe('production packaging', () => {
     expect(packageJson.build.mac.target).toEqual(['dmg']);
     expect(packageJson.build.linux.icon).toBe('build/icons/512x512.png');
     expect(packageJson.build.mac.icon).toBe('build/icon.icns');
-    expect(packageJson.build.linux.deb.depends).toContain('libsecret-1-0');
+    expect(packageJson.build.deb.depends).toContain('libsecret-1-0');
 
     const productionFiles = new Set(packageJson.build.files);
     expect(productionFiles.has('build/icons/**/*')).toBe(true);
