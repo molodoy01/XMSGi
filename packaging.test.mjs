@@ -11,6 +11,10 @@ const packageJson = JSON.parse(
 describe('production packaging', () => {
   it('publishes the XMSGi 2.2.3 portable package metadata', () => {
     expect(packageJson.version).toBe('2.2.3');
+    expect(packageJson.author).toEqual({
+      name: 'molodoy01',
+      email: 'molodoy98@proton.me'
+    });
     expect(packageJson.build.productName).toBe('XMSGi');
     expect(packageJson.build.icon).toBe('build/icon.ico');
     expect(packageJson.build.win.target).toEqual(['portable']);
@@ -20,7 +24,7 @@ describe('production packaging', () => {
   it('configures Linux and macOS packages without replacing the Windows target', () => {
     expect(packageJson.scripts.dist).toBe('npm run build && electron-builder --win');
     expect(packageJson.scripts['dist:linux']).toBe('npm run build && electron-builder --linux');
-    expect(packageJson.scripts['dist:mac']).toBe('npm run build && electron-builder --mac');
+    expect(packageJson.scripts['dist:mac']).toBe('npm run build && electron-builder --mac --publish never');
     expect(packageJson.build.linux.target).toEqual(['AppImage', 'deb']);
     expect(packageJson.build.mac.target).toEqual(['dmg']);
     expect(packageJson.build.linux.icon).toBe('build/icons/512x512.png');
