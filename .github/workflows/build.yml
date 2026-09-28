@@ -122,15 +122,26 @@ jobs:
           name: xmsgi-macos-dmg
           path: release-assets/macos
 
-      - name: Create GitHub Release
+      - name: Update or create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "$GITHUB_REF_NAME"
-          release-assets/windows/*.exe
-          release-assets/linux/*.AppImage
-          release-assets/linux/*.deb
-          release-assets/macos/*.dmg
-          --verify-tag
-          --title "$GITHUB_REF_NAME"
-          --generate-notes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          assets=(
+            release-assets/windows/*.exe
+            release-assets/linux/*.AppImage
+            release-assets/linux/*.deb
+            release-assets/macos/*.dmg
+          )
+
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+              --verify-tag \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes \
+              --repo "$GITHUB_REPOSITORY"
+          fi
