@@ -178,11 +178,38 @@
             background: rgba(255,255,255,.04);
         }
 
+        .button.platform {
+            background: rgba(108,124,255,.12);
+            border-color: rgba(143,154,255,.24);
+        }
+
         /* APP GALLERY */
 
         .gallery {
-            margin: 60px auto 0;
+            margin: 28px auto 0;
             max-width: 980px;
+        }
+
+        .screenshots-section {
+            padding: 0 0 100px;
+        }
+
+        .screenshots-heading {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .screenshots-heading h2 {
+            margin: 0 0 10px;
+            font-size: 40px;
+            letter-spacing: -.045em;
+            line-height: 1.05;
+        }
+
+        .screenshots-heading p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
         }
 
         .gallery-frame {
@@ -457,7 +484,15 @@
             }
 
             .gallery {
-                margin-top: 42px;
+                margin-top: 22px;
+            }
+
+            .screenshots-section {
+                padding-bottom: 80px;
+            }
+
+            .screenshots-heading h2 {
+                font-size: 34px;
             }
 
             .gallery-arrow {
@@ -483,6 +518,16 @@
                 padding-bottom: 80px;
             }
 
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .actions .button {
+                width: min(100%, 360px);
+                align-self: center;
+            }
+
             .download-box {
                 padding: 35px 22px;
             }
@@ -502,7 +547,9 @@
         <a class="brand" href="#">XMSGi</a>
 
         <div class="nav-links">
+            <a href="#screenshots">Screenshots</a>
             <a href="#how-it-works">How it works</a>
+            <a href="#downloads">Downloads</a>
             <a href="#trust">Trust</a>
             <a href="https://github.com/molodoy01/XMSGi">GitHub</a>
         </div>
@@ -516,6 +563,8 @@
     <section class="hero">
         <div class="container">
 
+            <p class="eyebrow">Desktop release · v2.2.3</p>
+
             <h1>
                 Telegram messages,
                 <span class="gradient">
@@ -524,39 +573,37 @@
             </h1>
 
             <p class="hero-description">
-                Write, schedule, and review Telegram messages from your own account. XMSGi keeps the timing in your hands.
+                Write, schedule, and review Telegram messages from your own account. Available for Windows, Linux, and macOS.
             </p>
 
             <div class="actions">
-
                 <a
                     class="button primary"
                     href="https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3"
                 >
-                    Download for Windows
+                    Download XMSGi 2.2.3
                 </a>
-
-                <a
-                    class="button secondary"
-                    href="https://github.com/molodoy01/XMSGi"
-                >
-                    View on GitHub
-                </a>
-
             </div>
 
-            <!-- APP GALLERY -->
+        </div>
+    </section>
+
+    <section class="screenshots-section" id="screenshots">
+        <div class="container">
+            <div class="screenshots-heading">
+                <p class="section-kicker">Inside XMSGi</p>
+                <h2>Screenshots</h2>
+                <p>Explore the Telegram scheduling workspace in XMSGi v2.2.3.</p>
+            </div>
 
             <div class="gallery">
                 <div class="gallery-frame">
-
                     <img
                         id="gallery-image"
                         class="gallery-image"
                         src="screenshots/01.png"
-                        alt="XMSGi desktop application"
+                        alt="XMSGi desktop application screenshot"
                     >
-
                     <button
                         id="gallery-prev"
                         class="gallery-arrow prev"
@@ -565,7 +612,6 @@
                     >
                         ‹
                     </button>
-
                     <button
                         id="gallery-next"
                         class="gallery-arrow next"
@@ -574,17 +620,11 @@
                     >
                         ›
                     </button>
-
-                    <div
-                        id="gallery-counter"
-                        class="gallery-counter"
-                    >
-                        01 / 03
+                    <div id="gallery-counter" class="gallery-counter">
+                        01 / 04
                     </div>
-
                 </div>
             </div>
-
         </div>
     </section>
 
@@ -593,18 +633,17 @@
         <div class="container">
             <div class="ai-panel">
                 <div class="ai-copy">
-                    <p class="section-kicker">How it works</p>
-                    <h2>Simple from the first step.</h2>
-                    <p>Open XMSGi, pick a Telegram chat, prepare the message, and decide whether it should go now or later.</p>
+                    <p class="section-kicker">Telegram integration</p>
+                    <h2>Messages on your schedule.</h2>
+                    <p>XMSGi connects to your Telegram account so you can prepare messages and choose exactly when they are sent.</p>
                 </div>
                 <div class="ai-details">
-                    <strong>Your message, your decision</strong>
+                    <strong>Built for everyday scheduling</strong>
                     <ul>
-                        <li>Choose an available chat, group, or dialog from your Telegram account.</li>
-                        <li>Write the text and add attachments when needed.</li>
-                        <li>Send it immediately or set a chosen date and time.</li>
-                        <li>Use silent delivery or a message effect when required.</li>
-                        <li>Review the outcome in the sending history.</li>
+                        <li>Choose chats, groups, and dialogs through Telegram integration.</li>
+                        <li>Write a message, add attachments, and send now or schedule it for a chosen date and time.</li>
+                        <li>Review delivery outcomes in the sending history.</li>
+                        <li>FloodWait handling respects Telegram's requested wait period and displays the active wait status.</li>
                     </ul>
                 </div>
             </div>
@@ -634,23 +673,33 @@
 
     <!-- DOWNLOAD -->
 
-    <section class="download-section">
+    <section class="download-section" id="downloads">
         <div class="container">
 
             <div class="download-box">
 
-                <h2>Plan the moments that matter.</h2>
+                <h2>Download XMSGi v2.2.3</h2>
 
-                <p>
-                    A stylish, functional way to schedule Telegram messages as reminders for yourself or thoughtful notes for the people close to you.
-                </p>
-
-                <a
-                    class="button primary"
-                    href="https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3"
-                >
-                    Download for Windows
-                </a>
+                <div class="actions">
+                    <a
+                        class="button primary"
+                        href="https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3"
+                    >
+                        Windows Portable (.exe)
+                    </a>
+                    <a
+                        class="button platform"
+                        href="https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3"
+                    >
+                        Linux AppImage / .deb
+                    </a>
+                    <a
+                        class="button platform"
+                        href="https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3"
+                    >
+                        macOS DMG
+                    </a>
+                </div>
 
             </div>
 
@@ -677,7 +726,8 @@
     const images = [
         "screenshots/01.png",
         "screenshots/02.png",
-        "screenshots/03.png"
+        "screenshots/03.png",
+        "screenshots/04.png"
     ];
 
     const image = document.getElementById("gallery-image");

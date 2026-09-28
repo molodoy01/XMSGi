@@ -889,7 +889,12 @@ export function SchedulePage(props: SchedulePageProps) {
                     <input
                       type="tel"
                       value={phoneNumber}
-                      onChange={(event) => setPhoneNumber(event.target.value)}
+                      onChange={(event) => {
+                        const value = event.currentTarget.value;
+                        setPhoneNumber((current) =>
+                          !current && /^\d/.test(value) ? `+${value}` : value
+                        );
+                      }}
                       placeholder={t('auth.phonePlaceholder')}
                       autoComplete="tel"
                     />
@@ -928,7 +933,7 @@ export function SchedulePage(props: SchedulePageProps) {
                 <button
                   className="action-button"
                   onClick={handleTelegramAuth}
-                  disabled={authBusy || (authStep === 'phone' ? !phoneNumber.trim() : !phoneCode.trim())}
+                  disabled={authBusy || (authStep === 'phone' ? !/\d/.test(phoneNumber) : !phoneCode.trim())}
                 >
                   {authBusy
                     ? t('auth.connecting')

@@ -1069,6 +1069,18 @@ body:has(.auth-panel) {
 
 .auth-form input[type="tel"]::placeholder {
   letter-spacing: 0.18em;
+  text-indent: 12px;
+}
+
+.auth-form input[type="tel"] {
+  width: 96%;
+  margin-left: 0;
+  margin-right: auto;
+  font-size: 18px !important;
+}
+
+.auth-form .field label {
+  font-size: 12px;
 }
 
 .auth-form.is-visible {
@@ -7036,6 +7048,11 @@ textarea:active,
   box-shadow: inset 0 0 0 1px rgba(53, 105, 94, 0.12) !important;
 }
 
+:root[data-theme="light"] .auth-form .action-button:not(.schedule-success),
+:root[data-theme="light"] .auth-form .action-button:not(.schedule-success):active {
+  box-shadow: 0 0 10px rgba(193, 205, 218, 0.08) !important;
+}
+
 :root[data-theme="light"] .action-button.schedule-success {
   border-color: #4e8065;
   background: #4e8065;
@@ -7049,10 +7066,23 @@ textarea:active,
   color: var(--text);
 }
 
+:root[data-theme="light"] .auth-cta::after {
+  background: linear-gradient(90deg, rgba(33, 133, 165, 0.42), #2185a5 48%, rgba(33, 133, 165, 0.42));
+  box-shadow: 0 0 10px rgba(33, 133, 165, 0.34);
+}
+
 :root[data-theme="light"] .auth-form input,
 :root[data-theme="light"] .auth-form textarea {
   border-color: #cbd7d6;
   background: #ffffff;
+}
+
+:root[data-theme="light"] .auth-form input[type="tel"] {
+  caret-color: #477d70;
+}
+
+:root[data-theme="light"] .auth-form input[type="tel"]::placeholder {
+  color: #65776d;
 }
 
 

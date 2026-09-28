@@ -1,6 +1,8 @@
 # XMSGi
 **Telegram message scheduler for Windows, Linux, and macOS.**
 
+![XMSGi](screenshots/01.png)
+
 XMSGi is a lightweight desktop application for sending and scheduling Telegram messages using your personal Telegram account.
 
 ## Features
@@ -10,45 +12,42 @@ XMSGi is a lightweight desktop application for sending and scheduling Telegram m
 - Scheduled message sending
 - Session saving
 - Session deletion
-- Portable Windows application
+- Windows Portable application
+- Linux AppImage and `.deb`
+- macOS DMG
 
 ## Download
-**XMSGi 2.2.3 — Windows Portable**
 
-Download the latest Windows `.exe` from [GitHub Releases](https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3).
+**XMSGi 2.2.3** is available for Windows, Linux, and macOS.
 
-## Linux
-Linux packages can be built on a Linux host (or Linux CI runner) with:
+### Windows
 
-```bash
-npm ci
-npm run dist:linux
-```
+Portable `.exe` — no installation required.
 
-The build creates AppImage and Debian packages in `release/`. The `.deb` declares `libsecret-1-0`; an active Secret Service/keyring such as GNOME Keyring or KWallet is needed to save encrypted Telegram sessions and Gemini keys. Without one, XMSGi still starts but reports that credentials cannot be saved securely; it will not fall back to Electron's weak `basic_text` backend or write secrets in plaintext. Closing the Linux window exits the app so it cannot become hidden when a desktop does not show tray icons. The tray remains best-effort.
+### Linux
 
-## macOS
-macOS packaging is prepared for a macOS runner with the existing Electron Builder setup. No Apple Developer signing or notarization is configured.
+AppImage and Debian `.deb` packages.
 
-```bash
-npm ci
-npm run dist:mac
-```
+### macOS
 
-This creates a DMG in `release/` using the existing Electron Builder `dmg` target without changing the Windows Portable or Linux packaging configuration.
+DMG package.
 
-## How it works
-XMSGi connects directly to Telegram using the MTProto protocol and your personal Telegram account.
+**[Download XMSGi 2.2.3 from GitHub Releases](https://github.com/molodoy01/XMSGi/releases/tag/v2.2.3)**
 
-Once a message is scheduled, your PC does not need to remain open.
+## Screenshots
+
+![XMSGi Dark Theme](screenshots/02.png)
+
+![XMSGi Scheduler](screenshots/03.png)
+
+![XMSGi](screenshots/04.png)
 
 ## Privacy & Security
+
 Telegram session data is stored locally and protected using Electron's secure storage where supported.
 
 XMSGi does not require a Telegram bot for its core scheduling flow.
 
 ## Open Source
-XMSGi is open source and available on GitHub.
 
----
-**XMSGi · Telegram scheduling, kept simple.**
+XMSGi is open source and available on GitHub.
