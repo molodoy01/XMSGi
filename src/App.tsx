@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useAssistant } from '@/hooks/useAssistant';
 import { useChats } from '@/hooks/useChats';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -23,6 +24,17 @@ function getCurrentHashPath(): AppRoute {
 }
 
 const MESSAGE_DRAFT_STORAGE_PREFIX = 'xmsgi:message-draft:';
+const APP_THEME_STORAGE_KEY = 'xmsgi_theme';
+
+type AppTheme = 'dark' | 'light';
+
+function getInitialTheme(): AppTheme {
+  try {
+    return window.localStorage.getItem(APP_THEME_STORAGE_KEY) === 'light' ? 'light' : 'dark';
+  } catch {
+    return 'dark';
+  }
+}
 
 function getMessageDraftStorageKey(chatId: string) {
   return `${MESSAGE_DRAFT_STORAGE_PREFIX}${chatId}`;
@@ -30,10 +42,21 @@ function getMessageDraftStorageKey(chatId: string) {
 
 function App() {
   const [message, setMessage] = useState('');
+  const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [route, setRoute] = useState<AppRoute>(getCurrentHashPath());
   const [scheduleActiveTab, setScheduleActiveTab] = useState<'upcoming' | 'sent'>('upcoming');
   const restoringDraftRef = useRef(false);
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    try {
+      window.localStorage.setItem(APP_THEME_STORAGE_KEY, theme);
+    } catch {
+      // Keep the selected theme for this session if storage is unavailable.
+    }
+  }, [theme]);
 
   const {
     notification,
@@ -237,8 +260,21 @@ function App() {
     setRoute(nextRoute);
   };
 
+  const handleThemeChange = (nextTheme: AppTheme) => {
+    if (nextTheme === theme) return;
+    const updateTheme = () => flushSync(() => setTheme(nextTheme));
+
+    if (document.startViewTransition) {
+      document.startViewTransition(updateTheme);
+    } else {
+      updateTheme();
+    }
+  };
+
   const renderSettingsPage = () => (
     <SettingsPage
+      theme={theme}
+      onThemeChange={handleThemeChange}
       onClose={() => {
         setShowAuthForm(false);
         setIsSettingsOpen(false);
@@ -261,6 +297,8 @@ function App() {
         renderSettingsPage()
       ) : (
         <SchedulePage
+          theme={theme}
+          onThemeChange={handleThemeChange}
           message={message}
           setMessage={setMessage}
           isSettingsOpen={isSettingsOpen}

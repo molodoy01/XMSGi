@@ -193,6 +193,7 @@ const {
   getChatPermissions,
   getChatAvatar,
   getChatHistory,
+  verifyMessageSent,
   getContacts,
   getAvailableEffects,
   resolveChat,
@@ -200,12 +201,19 @@ const {
   scheduleMessage,
   cancelScheduledMessage,
   shutdownTelegram,
-  setTelegramStatusCallback
+  setTelegramStatusCallback,
+  setTelegramMessageSentCallback
 } = require('./telegram.cjs');
 const { generateGeminiContent } = require('./gemini.cjs');
 
 setTelegramStatusCallback((status) => {
   sendTelegramStatus(status);
+});
+
+setTelegramMessageSentCallback((receipt) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('telegram-message-sent', receipt);
+  }
 });
 
 function getSafeTelegramAuthState() {
@@ -786,6 +794,26 @@ ipcMain.handle('telegram-send', async (event, data) => {
       success: false,
       error: error.message
     };
+  }
+});
+
+ipcMain.handle('telegram-verify-sent', async (event, data) => {
+  assertTrustedRenderer(
+    event,
+    mainWindow?.webContents,
+    pathToFileURL(path.join(__dirname, 'dist', 'index.html')).href
+  );
+  const validated = validateCancelPayload(data);
+
+  try {
+    const result = await verifyMessageSent(validated.chatId, validated.telegramMessageId);
+    return {
+      success: true,
+      ...result,
+    };
+  } catch (error) {
+    console.error('Telegram sent-message verification failed:', error?.code || error?.name || 'unknown');
+    return { success: false, error: error.message };
   }
 });
 

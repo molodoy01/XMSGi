@@ -1,8 +1,9 @@
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Menu, Paperclip, Smile, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Menu, Moon, Paperclip, Smile, Sun, X } from 'lucide-react';
 import xmsgiLogoWhite from '@/assets/xmsgi-logo-white.svg';
+import xmsgiLogoBlack from '@/assets/logo-black-2048.png';
 import { Notification } from '@/components/Notification';
 import { ChatPicker } from '@/components/ChatPicker';
 import { MessagesPanel } from '@/components/MessagesPanel';
@@ -49,6 +50,8 @@ function getAttachmentDraftStorageKey(chatId?: string) {
 }
 
 type SchedulePageProps = {
+  theme: 'dark' | 'light';
+  onThemeChange: (theme: 'dark' | 'light') => void;
   message: string;
   setMessage: Dispatch<SetStateAction<string>>;
   isSettingsOpen: boolean;
@@ -136,6 +139,8 @@ export function SchedulePage(props: SchedulePageProps) {
     setMessage,
     notification,
     closeNotification,
+    theme,
+    onThemeChange,
     connected,
     signedOut,
     returningUserName,
@@ -646,10 +651,12 @@ export function SchedulePage(props: SchedulePageProps) {
       const menu = timeMenuRef.current;
       if (!trigger || !menu) return;
 
-      const centeredLeft = trigger.left + trigger.width / 2 - menu.offsetWidth / 2;
+      const maxLeft = window.innerWidth - menu.offsetWidth - 12;
+      const centeredLeft = Math.max(12, Math.min(trigger.left + trigger.width / 2 - menu.offsetWidth / 2, maxLeft));
+      const themeOffset = document.documentElement.dataset.theme === 'light' ? 40 : 0;
       setTimeMenuPosition({
         top: Math.max(12, trigger.top - menu.offsetHeight - 6),
-        left: Math.max(12, Math.min(centeredLeft, window.innerWidth - menu.offsetWidth - 12)),
+        left: Math.max(12, centeredLeft - themeOffset),
       });
     };
 
@@ -753,7 +760,7 @@ export function SchedulePage(props: SchedulePageProps) {
                         onClick={handleDisconnect}
                         disabled={authBusy}
                       >
-                        {t('auth.rememberMe')}
+                        <span className="logout-choice-label">{t('auth.rememberMe')}</span>
                       </button>
                       <button
                         type="button"
@@ -761,7 +768,7 @@ export function SchedulePage(props: SchedulePageProps) {
                         onClick={handleForgetAccount}
                         disabled={authBusy}
                       >
-                        {t('auth.forgetMe')}
+                        <span className="logout-choice-label">{t('auth.forgetMe')}</span>
                       </button>
                     </div>
                     <div className="logout-confirmation-actions">
@@ -802,17 +809,42 @@ export function SchedulePage(props: SchedulePageProps) {
         ) : !connected ? (
           <section className={`auth-panel ${showAuthForm ? 'is-auth-open' : ''}`}>
             <div className="auth-brand" aria-label="XMSGi">
-              <img className="auth-brand-mark" src={xmsgiLogoWhite} alt="" aria-hidden="true" />
+              <img className="auth-brand-mark auth-brand-mark-dark" src={xmsgiLogoWhite} alt="" aria-hidden="true" />
+              <img className="auth-brand-mark auth-brand-mark-light" src={xmsgiLogoBlack} alt="" aria-hidden="true" />
               <span>XMSGi</span>
             </div>
-            <div className="auth-language-switch" role="group" aria-label={t('language.title')}>
-              <button type="button" className={locale === 'en' ? 'is-selected' : ''} onClick={() => setLocale('en')} aria-pressed={locale === 'en'}>
-                EN
-              </button>
-              <span aria-hidden="true">|</span>
-              <button type="button" className={locale === 'ru' ? 'is-selected' : ''} onClick={() => setLocale('ru')} aria-pressed={locale === 'ru'}>
-                RU
-              </button>
+            <div className="auth-control-switches">
+              <div className="auth-language-switch" role="group" aria-label={t('language.title')}>
+                <button type="button" className={locale === 'en' ? 'is-selected' : ''} onClick={() => setLocale('en')} aria-pressed={locale === 'en'}>
+                  EN
+                </button>
+                <span aria-hidden="true">|</span>
+                <button type="button" className={locale === 'ru' ? 'is-selected' : ''} onClick={() => setLocale('ru')} aria-pressed={locale === 'ru'}>
+                  RU
+                </button>
+              </div>
+              <div className="auth-theme-switch" role="group" aria-label={t('settings.appearance')}>
+                <button
+                  type="button"
+                  className={theme === 'light' ? 'is-selected' : ''}
+                  onClick={() => onThemeChange('light')}
+                  aria-label={t('settings.lightTheme')}
+                  title={t('settings.lightTheme')}
+                  aria-pressed={theme === 'light'}
+                >
+                  <Sun size={15} strokeWidth={1.8} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className={theme === 'dark' ? 'is-selected' : ''}
+                  onClick={() => onThemeChange('dark')}
+                  aria-label={t('settings.darkTheme')}
+                  title={t('settings.darkTheme')}
+                  aria-pressed={theme === 'dark'}
+                >
+                  <Moon size={15} strokeWidth={1.8} aria-hidden="true" />
+                </button>
+              </div>
             </div>
             <div className="auth-intro">
               <div className="auth-hero-copy" aria-label={t('hero.signInIntro')}>
@@ -842,6 +874,12 @@ export function SchedulePage(props: SchedulePageProps) {
                   <span className="auth-cta-arrow" aria-hidden="true">→</span>
                   <span>{t('auth.telegram')}</span>
                 </button>
+              )}
+
+              {authError && !showAuthForm && (
+                <p className="auth-error auth-connection-error" role="alert">
+                  {authError}
+                </p>
               )}
 
               <div className={`auth-form ${showAuthForm ? 'is-visible' : ''}`}>

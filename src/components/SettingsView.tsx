@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { useLocale } from '@/lib/i18n';
 
 type GeminiSettings = {
@@ -9,6 +10,8 @@ type GeminiSettings = {
 };
 
 type SettingsViewProps = {
+  theme: 'dark' | 'light';
+  onThemeChange: (theme: 'dark' | 'light') => void;
   onClose: () => void;
   geminiSettings: GeminiSettings;
   settingsKey: string;
@@ -21,6 +24,8 @@ type SettingsViewProps = {
 };
 
 export function SettingsView({
+  theme,
+  onThemeChange,
   onClose,
   geminiSettings,
   settingsKey,
@@ -68,6 +73,29 @@ export function SettingsView({
         <h1>{t('settings.title')}</h1>
 
         <div className="settings-sections">
+          <section className="settings-view-section">
+            <h2>{t('settings.appearance')}</h2>
+            <div className="settings-theme-switch" role="group" aria-label={t('settings.appearance')}>
+              <button
+                type="button"
+                className={theme === 'light' ? 'is-selected' : ''}
+                onClick={() => onThemeChange('light')}
+                aria-pressed={theme === 'light'}
+              >
+                <Sun size={16} strokeWidth={1.8} aria-hidden="true" />
+                <span>{t('settings.lightTheme')}</span>
+              </button>
+              <button
+                type="button"
+                className={theme === 'dark' ? 'is-selected' : ''}
+                onClick={() => onThemeChange('dark')}
+                aria-pressed={theme === 'dark'}
+              >
+                <Moon size={16} strokeWidth={1.8} aria-hidden="true" />
+                <span>{t('settings.darkTheme')}</span>
+              </button>
+            </div>
+          </section>
           <section className="settings-view-section">
             <h2>{t('settings.language')}</h2>
             <div className="settings-language-switch" role="group" aria-label={t('settings.language')}>

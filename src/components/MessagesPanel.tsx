@@ -315,7 +315,7 @@ export function MessagesPanel({
         {activeTab === 'upcoming' &&
           upcoming.length > 0 && (
             <button
-              className="clear-history"
+              className="clear-history clear-all"
               onClick={onClearAll}
               title={t('schedule.clearAllTitle')}
             >

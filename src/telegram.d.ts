@@ -171,6 +171,13 @@ declare global {
         };
         error?: string;
       }>;
+      verifyMessageSent: (data: { chatId: string; telegramMessageId: string | number }) => Promise<{
+        success: boolean;
+        sent?: boolean;
+        sentAt?: string;
+        error?: string;
+      }>;
+      onMessageSent: (callback: (receipt: { chatId: string; telegramMessageId: string; sentAt: string }) => void) => () => void;
       getFilePath: (file: File) => string;
       cancel: (data: {
         chatId: string;

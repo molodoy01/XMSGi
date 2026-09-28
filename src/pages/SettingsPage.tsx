@@ -1,6 +1,8 @@
 import { SettingsView } from '@/components/SettingsView';
 
 type SettingsPageProps = {
+  theme: 'dark' | 'light';
+  onThemeChange: (theme: 'dark' | 'light') => void;
   onClose: () => void;
   geminiSettings: {
     hasKey: boolean;
@@ -18,6 +20,8 @@ type SettingsPageProps = {
 };
 
 export function SettingsPage({
+  theme,
+  onThemeChange,
   onClose,
   geminiSettings,
   settingsKey,
@@ -30,6 +34,8 @@ export function SettingsPage({
 }: SettingsPageProps) {
   return (
     <SettingsView
+      theme={theme}
+      onThemeChange={onThemeChange}
       onClose={onClose}
       geminiSettings={geminiSettings}
       settingsKey={settingsKey}

@@ -302,9 +302,13 @@ describe('single-account Telegram lifecycle', () => {
     };
 
     try {
-      const { createTelegramCore } = await import('./telegram.cjs');
+      const telegramModule = await import('./telegram.cjs');
+      const { createTelegramCore } = telegramModule;
+      expect(telegramModule.setTelegramMessageSentCallback).toBeTypeOf('function');
+      telegramModule.setTelegramMessageSentCallback(() => {});
       const core = createTelegramCore({ apiId: 1, apiHash: 'hash', sessionString: 'session' });
       core.setTelegramStatusCallback((status) => statusUpdates.push(status));
+      core.setTelegramMessageSentCallback(() => {});
 
       await core.connectTelegram();
       await expect(core.getChats()).rejects.toMatchObject({
@@ -1004,6 +1008,14 @@ describe('single-account Telegram lifecycle', () => {
     await expect(timed).rejects.toMatchObject({ code: 'OPERATION_TIMEOUT' });
     release('late');
     await Promise.resolve();
+  });
+
+  it('uses a string timeout label without invoking it as a callback', async () => {
+    const operation = new Promise(() => {});
+    await expect(withTimeout(operation, 1, 'Telegram connect')).rejects.toMatchObject({
+      code: 'OPERATION_TIMEOUT',
+      message: 'Telegram connect timed out after 1 ms',
+    });
   });
 
   it('cleans timeout timers on success', async () => {

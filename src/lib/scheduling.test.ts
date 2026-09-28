@@ -4,6 +4,7 @@ import { loadUpcoming, saveUpcoming } from './storage';
 import {
   applyScheduleResult,
   createPendingSchedule,
+  findScheduledMessageForReceipt,
   findMatchingScheduledMessage,
   getPendingSchedules,
   getScheduleOccurrences,
@@ -105,6 +106,32 @@ describe('Pending scheduling recovery', () => {
       status: 'confirmed',
       telegramMessageId: 'telegram-1',
     });
+  });
+
+  it('matches an outgoing Telegram receipt by chat and message ID only', () => {
+    const scheduled: ScheduledMessage = {
+      ...createPending('operation-1'),
+      status: 'confirmed',
+      telegramMessageId: 42,
+    };
+
+    expect(findScheduledMessageForReceipt([scheduled], {
+      chatId: scheduled.chatId,
+      telegramMessageId: '42',
+      sentAt: '2026-09-28T12:00:00.000Z',
+    })).toEqual(scheduled);
+
+    expect(findScheduledMessageForReceipt([scheduled], {
+      chatId: 'another-chat',
+      telegramMessageId: 42,
+      sentAt: '2026-09-28T12:00:00.000Z',
+    })).toBeUndefined();
+
+    expect(findScheduledMessageForReceipt([scheduled], {
+      chatId: scheduled.chatId,
+      telegramMessageId: 43,
+      sentAt: '2026-09-28T12:00:00.000Z',
+    })).toBeUndefined();
   });
 
   it('persists telegramMessageId in the same local record', () => {

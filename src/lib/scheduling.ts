@@ -27,6 +27,24 @@ export type TelegramScheduleResult = {
   error?: string;
 };
 
+export type TelegramSentReceipt = {
+  chatId: string;
+  telegramMessageId: string | number;
+  sentAt: string;
+};
+
+export function findScheduledMessageForReceipt(
+  messages: ScheduledMessage[],
+  receipt: TelegramSentReceipt,
+): ScheduledMessage | undefined {
+  return messages.find((message) =>
+    (message.status === 'scheduled' || message.status === 'confirmed')
+    && message.chatId === receipt.chatId
+    && message.telegramMessageId !== undefined
+    && String(message.telegramMessageId) === String(receipt.telegramMessageId)
+  );
+}
+
 export type ScheduleRepeatMode = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
 export type ScheduleRepeatOptions = {

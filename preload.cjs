@@ -70,6 +70,9 @@ contextBridge.exposeInMainWorld('telegram', {
   getChatHistory: (data) =>
     ipcRenderer.invoke('telegram-chat-history', data),
 
+  verifyMessageSent: (data) =>
+    ipcRenderer.invoke('telegram-verify-sent', data),
+
   getFilePath: (file) =>
     webUtils.getPathForFile(file),
 
@@ -77,18 +80,20 @@ contextBridge.exposeInMainWorld('telegram', {
     ipcRenderer.invoke('telegram-cancel', data),
 
   onStatus: (callback) => {
-
-    ipcRenderer.on(
-      'telegram-status',
-      (event, status) => {
-
-        if (typeof callback === 'function') {
-          callback(status);
-        }
-
+    ipcRenderer.on('telegram-status', (event, status) => {
+      if (typeof callback === 'function') {
+        callback(status);
       }
-    );
+    });
+  },
 
+  onMessageSent: (callback) => {
+    const handler = (event, receipt) => {
+      if (typeof callback === 'function') callback(receipt);
+    };
+
+    ipcRenderer.on('telegram-message-sent', handler);
+    return () => ipcRenderer.removeListener('telegram-message-sent', handler);
   }
 
 });

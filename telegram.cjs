@@ -1,4 +1,5 @@
 const { TelegramClient, Api } = require('teleproto');
+const { NewMessage } = require('teleproto/events');
 const { StringSession } = require('teleproto/sessions');
 const DEFAULT_PRODUCTION_API_ID = String(process.env.API_ID || '32410711');
 const DEFAULT_PRODUCTION_API_HASH = String(process.env.API_HASH || '0ff4fb84d6816badda23acdb9dd78705');
@@ -500,6 +501,9 @@ function loginUser(params = {}) {
 let client = null;
 let loginPromise = null;
 let telegramStatusCallback = null;
+let telegramMessageSentCallback = null;
+let outgoingMessageHandlerClient = null;
+let outgoingMessageHandlerEvent = null;
 let invalidSessionCleanupPromise = null;
 let shutdownPromise = null;
 
@@ -621,21 +625,58 @@ function setTelegramStatusCallback(callback) {
   telegramStatusCallback = callback;
 }
 
+function setTelegramMessageSentCallback(callback) {
+  telegramMessageSentCallback = callback;
+}
+
 function notifyTelegramStatus(status) {
   if (typeof telegramStatusCallback === 'function') {
     telegramStatusCallback(status);
   }
 }
 
+function notifyTelegramMessageSent(event) {
+  const message = event?.message;
+  const chatId = event?.chatId?.toString();
+  if (!message || message.out !== true || !chatId || message.id === undefined) return;
+
+  const date = message.date instanceof Date
+    ? message.date
+    : new Date(Number(message.date || 0) * 1000);
+
+  if (typeof telegramMessageSentCallback === 'function') {
+    telegramMessageSentCallback({
+      chatId,
+      telegramMessageId: String(message.id),
+      sentAt: Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString(),
+    });
+  }
+}
+
+function attachOutgoingMessageHandler(clientToObserve) {
+  if (
+    outgoingMessageHandlerClient === clientToObserve ||
+    typeof clientToObserve?.addEventHandler !== 'function'
+  ) return;
+
+  if (
+    outgoingMessageHandlerClient &&
+    outgoingMessageHandlerEvent &&
+    typeof outgoingMessageHandlerClient.removeEventHandler === 'function'
+  ) {
+    outgoingMessageHandlerClient.removeEventHandler(notifyTelegramMessageSent, outgoingMessageHandlerEvent);
+  }
+
+  outgoingMessageHandlerEvent = new NewMessage({ outgoing: true });
+  outgoingMessageHandlerClient = clientToObserve;
+  clientToObserve.addEventHandler(notifyTelegramMessageSent, outgoingMessageHandlerEvent);
+}
+
 // =========================================================
 // TIMEOUT
 // =========================================================
 function withTimeout(promise, timeout, operation) {
-  return withLifecycleTimeout(
-    promise,
-    timeout,
-    operation
-  );
+  return withLifecycleTimeout(promise, timeout, operation);
 }
 
 async function checkInternetConnection() {
@@ -957,7 +998,11 @@ async function connectTelegramInternal({ allowSignedOut = false } = {}) {
 
   notifyTelegramStatus('connecting');
 
-  await telegramRequest(() => clientToConnect.connect());
+  await telegramRequest(() => withTimeout(
+    clientToConnect.connect(),
+    REQUEST_TIMEOUT,
+    'Telegram connect'
+  ));
 
   if (
     connectGeneration !== lifecycleState.reconnectGeneration ||
@@ -977,6 +1022,8 @@ async function connectTelegramInternal({ allowSignedOut = false } = {}) {
 
     throw new Error('Telegram connect was cancelled.');
   }
+
+  attachOutgoingMessageHandler(clientToConnect);
 
   console.log(
     'Telegram connected'
@@ -1377,6 +1424,55 @@ async function getChatHistoryInternal(chatId, limit = 50) {
 function getChatHistory(chatId, limit) {
   return trackTelegramOperation('getChatHistory', () =>
     getChatHistoryInternal(chatId, limit)
+  );
+}
+
+async function verifyMessageSentInternal(chatId, telegramMessageId) {
+  if (!client) {
+    await connectTelegram();
+  }
+
+  const messageId = Number(telegramMessageId);
+  if (!Number.isSafeInteger(messageId) || messageId < 1) {
+    throw new Error('Invalid Telegram message ID.');
+  }
+
+  const clientAtStart = client;
+  const target = chatId === 'me' ? 'me' : chatId;
+  const entity = await telegramRequest(() => withTimeout(
+    clientAtStart.getEntity(target),
+    REQUEST_TIMEOUT,
+    'Resolving chat to verify sent message'
+  ));
+  const messages = await telegramRequest(() => withTimeout(
+    clientAtStart.getMessages(entity, { ids: messageId }),
+    REQUEST_TIMEOUT,
+    'Verifying sent Telegram message'
+  ));
+
+  if (client !== clientAtStart) {
+    throw new Error('Telegram message verification was cancelled.');
+  }
+
+  const sentMessage = [...(messages || [])].find((message) =>
+    String(message.id) === String(telegramMessageId) && message.out === true
+  );
+
+  if (!sentMessage) return { sent: false };
+
+  const date = sentMessage.date instanceof Date
+    ? sentMessage.date
+    : new Date(Number(sentMessage.date || 0) * 1000);
+
+  return {
+    sent: true,
+    sentAt: Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString(),
+  };
+}
+
+function verifyMessageSent(chatId, telegramMessageId) {
+  return trackTelegramOperation('verify-message-sent', () =>
+    verifyMessageSentInternal(chatId, telegramMessageId)
   );
 }
 
@@ -2424,6 +2520,7 @@ function cancelScheduledMessage(chatId, messageId, message, date, time) {
     getChatPermissions,
     getChatAvatar,
     getChatHistory,
+    verifyMessageSent,
     getContacts,
     getAvailableEffects,
     resolveChat,
@@ -2432,6 +2529,7 @@ function cancelScheduledMessage(chatId, messageId, message, date, time) {
     cancelScheduledMessage,
     shutdownTelegram,
     setTelegramStatusCallback,
+    setTelegramMessageSentCallback,
     lifecycleState
   };
 }
@@ -2453,6 +2551,7 @@ module.exports = {
   getChatPermissions: (...args) => defaultCore.getChatPermissions(...args),
   getChatAvatar: (...args) => defaultCore.getChatAvatar(...args),
   getChatHistory: (...args) => defaultCore.getChatHistory(...args),
+  verifyMessageSent: (...args) => defaultCore.verifyMessageSent(...args),
   getContacts: (...args) => defaultCore.getContacts(...args),
   normalizeQuery,
   normalizePhone,
@@ -2464,5 +2563,6 @@ module.exports = {
   scheduleMessage: (...args) => defaultCore.scheduleMessage(...args),
   cancelScheduledMessage: (...args) => defaultCore.cancelScheduledMessage(...args),
   shutdownTelegram: (...args) => defaultCore.shutdownTelegram(...args),
-  setTelegramStatusCallback: (...args) => defaultCore.setTelegramStatusCallback(...args)
+  setTelegramStatusCallback: (...args) => defaultCore.setTelegramStatusCallback(...args),
+  setTelegramMessageSentCallback: (...args) => defaultCore.setTelegramMessageSentCallback(...args)
 };

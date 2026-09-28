@@ -5,6 +5,7 @@ import type { InlineKeyboardMarkup } from '@/lib/inlineKeyboard';
 import {
   applyScheduleResult,
   createPendingSchedule,
+  findScheduledMessageForReceipt,
   getScheduleOccurrences,
   getPendingSchedules,
 } from '@/lib/scheduling';
@@ -73,6 +74,8 @@ export function useScheduler({
   const dateEditedRef = useRef(false);
   const timeEditedRef = useRef(false);
   const [upcoming, setUpcoming] = useState<ScheduledMessage[]>([]);
+  const upcomingRef = useRef<ScheduledMessage[]>([]);
+  const sentVerificationInFlightRef = useRef(new Set<string>());
   const [sent, setSent] = useState<ScheduledMessage[]>([]);
   const [scheduling, setScheduling] = useState(false);
   const schedulingLockRef = useRef(false);
@@ -87,6 +90,26 @@ export function useScheduler({
   const loadSent = useCallback(() => loadSentFromStorage(historyScope), [historyScope]);
   const saveUpcoming = useCallback((messages: ScheduledMessage[]) => saveUpcomingToStorage(messages, historyScope), [historyScope]);
   const saveSent = useCallback((messages: ScheduledMessage[]) => saveSentToStorage(messages, historyScope), [historyScope]);
+  const moveScheduledMessageToSent = useCallback((message: ScheduledMessage, sentAt: string) => {
+    const sentMessage: ScheduledMessage = { ...message, status: 'sent', sentAt };
+
+    setUpcoming((current) => {
+      if (!current.some((item) => item.id === message.id)) return current;
+      const updated = current.filter((item) => item.id !== message.id);
+      saveUpcoming(updated);
+      return updated;
+    });
+
+    setSent((current) => {
+      if (current.some((item) => item.id === message.id)) return current;
+      const updated = [sentMessage, ...current];
+      saveSent(updated);
+      return updated;
+    });
+
+    setRevealingId(message.id);
+    window.setTimeout(() => setRevealingId(null), 1500);
+  }, [saveSent, saveUpcoming]);
 
   useEffect(() => {
     if (historyScope !== 'personal') return;
@@ -111,6 +134,10 @@ export function useScheduler({
   }, [loadSent, loadUpcoming]);
 
   useEffect(() => {
+    upcomingRef.current = upcoming;
+  }, [upcoming]);
+
+  useEffect(() => {
     if (!connected) return;
 
     let cancelled = false;
@@ -122,26 +149,19 @@ export function useScheduler({
         const pendingTimestamp = new Date(pendingMessage.when).getTime();
 
         if (Number.isFinite(pendingTimestamp) && pendingTimestamp <= Date.now()) {
-          const completedMessage: ScheduledMessage = {
-            ...pendingMessage,
-            status: 'sent',
-            sentAt: new Date().toISOString(),
-          };
+          if (pendingMessage.telegramMessageId !== undefined) {
+            const result = await window.telegram.verifyMessageSent({
+              chatId: pendingMessage.chatId,
+              telegramMessageId: pendingMessage.telegramMessageId,
+            });
 
-          setUpcoming((current) => {
-            const updated = current.filter((message) => message.id !== pendingMessage.id);
-            saveUpcoming(updated);
-            return updated;
-          });
-
-          setSent((current) => {
-            const updated = [
-              completedMessage,
-              ...current.filter((message) => message.id !== pendingMessage.id),
-            ];
-            saveSent(updated);
-            return updated;
-          });
+            if (!cancelled && result.success && result.sent) {
+              moveScheduledMessageToSent(
+                pendingMessage,
+                result.sentAt || new Date().toISOString(),
+              );
+            }
+          }
 
           continue;
         }
@@ -195,51 +215,66 @@ export function useScheduler({
     return () => {
       cancelled = true;
     };
-  }, [connected, loadUpcoming, saveUpcoming, showNotification, t]);
+  }, [connected, loadUpcoming, moveScheduledMessageToSent, saveUpcoming, showNotification, t]);
 
   useEffect(() => {
-    const moveDueMessages = () => {
-      const now = Date.now();
-      const dueMessages = upcoming.filter(
-        (msg) =>
-          (msg.status === 'scheduled' || msg.status === 'confirmed') &&
-          new Date(msg.when).getTime() <= now
+    if (!connected) return;
+
+    return window.telegram.onMessageSent((receipt) => {
+      const scheduledMessage = findScheduledMessageForReceipt(upcomingRef.current, receipt);
+      if (scheduledMessage) {
+        moveScheduledMessageToSent(scheduledMessage, receipt.sentAt);
+      }
+    });
+  }, [connected, moveScheduledMessageToSent]);
+
+  useEffect(() => {
+    if (!connected) return;
+
+    let cancelled = false;
+
+    const verifyDueMessages = async () => {
+      const dueMessages = upcoming.filter((message) =>
+        (message.status === 'scheduled' || message.status === 'confirmed')
+        && message.telegramMessageId !== undefined
+        && new Date(message.when).getTime() <= Date.now()
       );
 
-      if (dueMessages.length === 0) return;
+      for (const message of dueMessages) {
+        if (sentVerificationInFlightRef.current.has(message.id)) continue;
+        sentVerificationInFlightRef.current.add(message.id);
 
-      const dueIds = new Set(dueMessages.map((msg) => msg.id));
-      const sentMessages = dueMessages.map((msg) => ({
-        ...msg,
-        status: 'sent' as const,
-        sentAt: new Date().toISOString(),
-      }));
+        try {
+          const result = await window.telegram.verifyMessageSent({
+            chatId: message.chatId,
+            telegramMessageId: message.telegramMessageId!,
+          });
 
-      setUpcoming((current) => {
-        const updated = current.filter((msg) => !dueIds.has(msg.id));
-        saveUpcoming(updated);
-        return updated;
-      });
-
-      setSent((current) => {
-        const existingIds = new Set(current.map((msg) => msg.id));
-        const updated = [
-          ...sentMessages.filter((msg) => !existingIds.has(msg.id)),
-          ...current,
-        ];
-        saveSent(updated);
-        return updated;
-      });
-
-      setRevealingId(dueMessages[0].id);
-      window.setTimeout(() => setRevealingId(null), 1500);
+          if (!cancelled && result.success && result.sent) {
+            const currentMessage = upcomingRef.current.find((item) => item.id === message.id);
+            if (currentMessage) {
+              moveScheduledMessageToSent(
+                currentMessage,
+                result.sentAt || new Date().toISOString(),
+              );
+            }
+          }
+        } catch {
+          // Keep the message confirmed until Telegram can verify it.
+        } finally {
+          sentVerificationInFlightRef.current.delete(message.id);
+        }
+      }
     };
 
-    moveDueMessages();
-    const intervalId = window.setInterval(moveDueMessages, 1000);
+    void verifyDueMessages();
+    const intervalId = window.setInterval(() => void verifyDueMessages(), 15000);
 
-    return () => window.clearInterval(intervalId);
-  }, [saveSent, saveUpcoming, upcoming]);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [connected, moveScheduledMessageToSent, upcoming]);
 
   function handleSchedule(assistantSchedule?: {
     chatId: string;
@@ -397,6 +432,7 @@ export function useScheduler({
       const results: Array<{ result: Awaited<ReturnType<typeof window.telegram.schedule>>; operationId: string }> = [];
 
       for (const [index, pendingMessage] of pendingMessages.entries()) {
+        let resultEntry: (typeof results)[number];
         try {
           const result = await window.telegram.schedule({
             chatId,
@@ -408,15 +444,52 @@ export function useScheduler({
             silent,
             effect,
           });
-          results.push({ result, operationId: pendingMessage.operationId! });
+          resultEntry = { result, operationId: pendingMessage.operationId! };
         } catch (error) {
-          results.push({
+          resultEntry = {
             result: {
               success: false,
               error: error instanceof Error ? error.message : t('schedule.failed'),
             },
             operationId: pendingMessage.operationId!,
+          };
+        }
+
+        results.push(resultEntry);
+
+        if (!resultEntry.result.success) {
+          setUpcoming((current) => {
+            const updated = current.map((message) =>
+              message.operationId === resultEntry.operationId
+                ? { ...message, status: 'pending' as const }
+                : message,
+            );
+            saveUpcoming(updated);
+            return updated;
           });
+        } else {
+          const telegramMessageId = resultEntry.result.telegramMessageId ?? resultEntry.result.id;
+          setUpcoming((current) => {
+            const updated = current.map((message) =>
+              message.operationId === resultEntry.operationId
+                ? { ...message, telegramMessageId }
+                : message,
+            );
+            saveUpcoming(updated);
+            return updated;
+          });
+
+          window.setTimeout(() => {
+            setUpcoming((current) => {
+              const updated = applyScheduleResult(current, resultEntry.operationId, {
+                success: true,
+                telegramMessageId,
+                confirmed: true,
+              });
+              saveUpcoming(updated);
+              return updated;
+            });
+          }, TELEGRAM_CONFIRMATION_DELAY_MS);
         }
 
         if (index < pendingMessages.length - 1) {
@@ -430,31 +503,6 @@ export function useScheduler({
         schedulingLockRef.current = false;
         setScheduling(false);
         const successful = results.filter(({ result }) => result.success);
-
-        window.setTimeout(() => {
-          setUpcoming((current) => {
-            const updated = current.map((message) => {
-              const resultEntry = results.find(
-                ({ operationId }) => operationId === message.operationId,
-              );
-
-              if (!resultEntry) return message;
-
-              if (!resultEntry.result.success || !resultEntry.result.confirmed) {
-                return { ...message, status: 'pending' as const };
-              }
-
-              return applyScheduleResult(current, message.operationId!, {
-                success: true,
-                telegramMessageId: resultEntry.result.telegramMessageId ?? resultEntry.result.id,
-                confirmed: true,
-              }).find((item) => item.operationId === message.operationId) ?? message;
-            });
-
-            saveUpcoming(updated);
-            return updated;
-          });
-        }, TELEGRAM_CONFIRMATION_DELAY_MS);
 
         if (successful.length === 0) {
           if (results[0]?.result.error && refreshChatPermissions) {
