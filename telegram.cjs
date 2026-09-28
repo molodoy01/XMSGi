@@ -504,6 +504,7 @@ let telegramStatusCallback = null;
 let telegramMessageSentCallback = null;
 let outgoingMessageHandlerClient = null;
 let outgoingMessageHandlerEvent = null;
+let telegramFloodWaitUntil = 0;
 let invalidSessionCleanupPromise = null;
 let shutdownPromise = null;
 
@@ -600,11 +601,34 @@ async function invalidateTelegramSession() {
 async function telegramRequest(request) {
   assertTelegramRunning();
 
+  const activeFloodWaitError = getActiveFloodWaitError();
+  if (activeFloodWaitError) throw activeFloodWaitError;
+
   try {
     return await request();
   } catch (error) {
     const floodWaitError = normalizeFloodWaitError(error);
-    if (floodWaitError) throw floodWaitError;
+    if (floodWaitError) {
+      const now = Date.now();
+      const previousFloodWaitUntil = telegramFloodWaitUntil;
+      telegramFloodWaitUntil = Math.max(
+        telegramFloodWaitUntil,
+        now + floodWaitError.waitSeconds * 1000
+      );
+      const waitSeconds = Math.ceil((telegramFloodWaitUntil - now) / 1000);
+      floodWaitError.waitSeconds = waitSeconds;
+      floodWaitError.message = `Telegram asks to wait ${waitSeconds} seconds before trying again.`;
+
+      if (previousFloodWaitUntil <= now || telegramFloodWaitUntil > previousFloodWaitUntil + 3000) {
+        notifyTelegramStatus({
+          status: 'flood_wait',
+          code: floodWaitError.code,
+          waitSeconds,
+        });
+      }
+
+      throw floodWaitError;
+    }
 
     if (!isInvalidTelegramSessionError(error)) {
       throw error;
@@ -633,6 +657,19 @@ function notifyTelegramStatus(status) {
   if (typeof telegramStatusCallback === 'function') {
     telegramStatusCallback(status);
   }
+}
+
+function createFloodWaitError(waitSeconds) {
+  const normalizedWaitSeconds = Math.max(1, Math.ceil(waitSeconds));
+  const error = new Error(`Telegram asks to wait ${normalizedWaitSeconds} seconds before trying again.`);
+  error.code = 'TELEGRAM_FLOOD_WAIT';
+  error.waitSeconds = normalizedWaitSeconds;
+  return error;
+}
+
+function getActiveFloodWaitError() {
+  const waitSeconds = Math.ceil((telegramFloodWaitUntil - Date.now()) / 1000);
+  return waitSeconds > 0 ? createFloodWaitError(waitSeconds) : null;
 }
 
 function notifyTelegramMessageSent(event) {
@@ -725,6 +762,12 @@ async function checkInternetConnection() {
 async function reconnectTelegramInternal() {
 
   assertTelegramRunning();
+
+  const activeFloodWaitError = getActiveFloodWaitError();
+  if (activeFloodWaitError) {
+    throw activeFloodWaitError;
+  }
+
   lifecycleState.status = 'reconnecting';
 
   if (!client) {
@@ -821,6 +864,10 @@ function startTelegramReconnect() {
       return;
     }
 
+    if (Date.now() < telegramFloodWaitUntil) {
+      return;
+    }
+
     try {
 
       // ===================================================
@@ -888,6 +935,12 @@ function stopTelegramReconnect() {
 async function connectTelegramInternal({ allowSignedOut = false } = {}) {
 
   assertTelegramRunning();
+
+  const activeFloodWaitError = getActiveFloodWaitError();
+  if (activeFloodWaitError) {
+    throw activeFloodWaitError;
+  }
+
   lifecycleState.status = 'connecting';
 
   refreshRuntimeSecrets();
@@ -1131,6 +1184,7 @@ async function getChatAvatarDataUrl(entity) {
       return `data:image/jpeg;base64,${Buffer.from(avatar).toString('base64')}`;
     }
   } catch (error) {
+    if (error?.code === 'TELEGRAM_FLOOD_WAIT') throw error;
     console.error('Telegram chat avatar unavailable:', error?.code || error?.name || 'unknown');
   }
 

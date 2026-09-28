@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Chat, NotificationType } from '@/types';
 import { savePersistentChats } from '@/lib/storage';
@@ -6,6 +6,7 @@ import { useLocale } from '@/lib/i18n';
 
 export type TelegramAuthOptions = {
   showNotification: (message: string, type: NotificationType, title: string) => void;
+  closeNotification: () => void;
   setIsSettingsOpen: Dispatch<SetStateAction<boolean>>;
   setChats: Dispatch<SetStateAction<Chat[]>>;
   setSelectedChat: Dispatch<SetStateAction<Chat | null>>;
@@ -13,6 +14,7 @@ export type TelegramAuthOptions = {
 
 export function useTelegramAuth({
   showNotification,
+  closeNotification,
   setIsSettingsOpen,
   setChats,
   setSelectedChat,
@@ -31,6 +33,7 @@ export function useTelegramAuth({
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
+  const lastFloodWaitKeyRef = useRef<string | null>(null);
 
   const handleTelegramAuth = useCallback(async () => {
     setAuthBusy(true);
@@ -245,10 +248,42 @@ export function useTelegramAuth({
           connected?: boolean;
           status?: string;
           error?: string;
+          code?: string;
+          waitSeconds?: number | string;
         };
 
         if (typeof value.connected === 'boolean') {
           setConnected(value.connected);
+        }
+
+        if (value.status === 'flood_wait' && value.code === 'TELEGRAM_FLOOD_WAIT') {
+          const waitSeconds = Number(value.waitSeconds ?? 0);
+
+          if (Number.isFinite(waitSeconds) && waitSeconds > 0) {
+            const floodWaitKey = `${value.code}:${waitSeconds}`;
+
+            if (lastFloodWaitKeyRef.current !== floodWaitKey) {
+              showNotification(
+                `Telegram временно ограничил запросы. Повторите через ${waitSeconds} сек.`,
+                'warning',
+                'Telegram'
+              );
+              lastFloodWaitKeyRef.current = floodWaitKey;
+            }
+          }
+
+          return;
+        }
+
+        if (
+          value.status === 'connected' ||
+          value.status === 'reauth_required' ||
+          value.status === 'disconnected' ||
+          value.status === 'offline' ||
+          value.status === 'error'
+        ) {
+          lastFloodWaitKeyRef.current = null;
+          closeNotification();
         }
 
         if (value.status === 'connected') {
@@ -277,6 +312,8 @@ export function useTelegramAuth({
 
       if (typeof status === 'string') {
         if (status === 'connected') {
+          lastFloodWaitKeyRef.current = null;
+          closeNotification();
           setConnected(true);
           setConnecting(false);
           setConnectionResolved(true);
@@ -287,6 +324,8 @@ export function useTelegramAuth({
           status === 'offline' ||
           status === 'error'
         ) {
+          lastFloodWaitKeyRef.current = null;
+          closeNotification();
           setConnected(false);
           setConnecting(false);
           setConnectionResolved(true);
@@ -295,7 +334,7 @@ export function useTelegramAuth({
     };
 
     window.telegram.onStatus(handleStatus);
-  }, [t]);
+  }, [closeNotification, showNotification, t]);
 
   return {
     connected,

@@ -96,6 +96,75 @@ describe('single-account Telegram lifecycle', () => {
     expect(state.client).toBeUndefined();
   });
 
+  it('blocks repeated connect attempts while Telegram flood wait is active', async () => {
+    vi.resetModules();
+    const originalLoad = nodeModule._load;
+    let connectAttempts = 0;
+
+    nodeModule._load = function load(request, parent, isMain) {
+      if (request === 'teleproto') {
+        return {
+          TelegramClient: class FakeTelegramClient {
+            constructor() {
+              this.connected = false;
+            }
+
+            async connect() {
+              connectAttempts += 1;
+              if (connectAttempts === 1) {
+                const error = new Error('FLOOD_WAIT_5');
+                error.code = 'FLOOD_WAIT_5';
+                throw error;
+              }
+
+              this.connected = true;
+              return undefined;
+            }
+
+            async disconnect() {
+              this.connected = false;
+              return undefined;
+            }
+          },
+          Api: {}
+        };
+      }
+
+      if (request === 'teleproto/sessions') {
+        return { StringSession: class FakeStringSession {} };
+      }
+
+      if (request === './telegram-account-storage.cjs') {
+        return {
+          loadAccountSecrets: () => ({ API_ID: '1', API_HASH: 'hash', SESSION_STRING: 'session' }),
+          saveAccountSecrets: () => true,
+          clearAccountSecrets: () => true
+        };
+      }
+
+      return originalLoad(request, parent, isMain);
+    };
+
+    try {
+      const { createTelegramCore } = await import('./telegram.cjs');
+      const core = createTelegramCore({ apiId: 1, apiHash: 'hash', sessionString: 'session' });
+
+      await expect(core.connectTelegram()).rejects.toMatchObject({
+        code: 'TELEGRAM_FLOOD_WAIT',
+        waitSeconds: 5
+      });
+
+      await expect(core.connectTelegram()).rejects.toMatchObject({
+        code: 'TELEGRAM_FLOOD_WAIT'
+      });
+
+      expect(connectAttempts).toBe(1);
+    } finally {
+      nodeModule._load = originalLoad;
+      vi.resetModules();
+    }
+  });
+
   it('does not resurrect a client when connect is interrupted by shutdown', async () => {
     const state = createLifecycleState();
     const connectGate = createDeferred();

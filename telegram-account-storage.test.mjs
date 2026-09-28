@@ -14,7 +14,11 @@ function createFakeStorage(initialConfig = {}, options = {}) {
     [getConfigPath(), options.rawConfig ?? JSON.stringify(initialConfig)]
   ]);
   const safeStorage = {
-    isEncryptionAvailable: () => options.encryptionAvailable !== false,
+    isEncryptionAvailable: () => {
+      if (options.encryptionError) throw options.encryptionError;
+      return options.encryptionAvailable !== false;
+    },
+    getSelectedStorageBackend: () => options.storageBackend || 'gnome_libsecret',
     encryptString: (value) => Buffer.from(`encrypted:${value}`),
     decryptString: (value) => value.toString().replace(/^encrypted:/, '')
   };
@@ -41,7 +45,8 @@ function createFakeStorage(initialConfig = {}, options = {}) {
     fs,
     path: { join: () => getConfigPath() },
     app: { getPath: () => 'C:\\temp' },
-    safeStorage
+    safeStorage,
+    platform: options.platform
   });
 
   return { adapter, files, fs };
@@ -346,6 +351,40 @@ describe('telegram account storage adapter', () => {
     expect(() => adapter.saveAccountSecrets({ SESSION_STRING: 'session' }))
       .toThrow('Secure local storage is unavailable');
     expect(files.get(getConfigPath())).toBe(originalConfig);
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('treats a keyring availability error as unavailable without exposing or writing secrets', () => {
+    const { adapter, files, fs } = createFakeStorage({ SESSION_STRING: 'legacy-session' }, {
+      encryptionError: new Error('Secret Service is unavailable')
+    });
+
+    expect(adapter.loadAccountSecrets()).toEqual({
+      API_ID: '',
+      API_HASH: '',
+      SESSION_STRING: '',
+      signedOut: false
+    });
+    expect(() => adapter.saveAccountSecrets({ SESSION_STRING: 'new-session' }))
+      .toThrow('Secure local storage is unavailable');
+    expect(files.get(getConfigPath())).toContain('legacy-session');
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('rejects Electron basic_text storage on Linux instead of treating it as a keyring', () => {
+    const { adapter, fs } = createFakeStorage({}, {
+      platform: 'linux',
+      storageBackend: 'basic_text'
+    });
+
+    expect(adapter.loadAccountSecrets()).toEqual({
+      API_ID: '',
+      API_HASH: '',
+      SESSION_STRING: '',
+      signedOut: false
+    });
+    expect(() => adapter.saveAccountSecrets({ SESSION_STRING: 'session' }))
+      .toThrow('Secure local storage is unavailable');
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 

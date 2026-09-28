@@ -96,6 +96,7 @@ function App() {
     handleForgetAccount,
   } = useTelegramAuth({
     showNotification,
+    closeNotification,
     setIsSettingsOpen,
     setChats: (value) => {
       chatsApiRef.current?.setChats(value);

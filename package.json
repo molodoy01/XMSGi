@@ -2,6 +2,7 @@
   "name": "xmsgi",
   "private": true,
   "version": "2.2.3",
+  "description": "Desktop Telegram message scheduler",
   "repository": "https://github.com/molodoy01/XMSGi",
   "type": "module",
   "scripts": {
@@ -13,7 +14,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "electron": "electron .",
     "start": "npm run build && electron .",
-    "dist": "npm run build && electron-builder --win"
+    "dist": "npm run build && electron-builder --win",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:mac": "npm run build && electron-builder --mac"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
@@ -53,6 +56,8 @@
     "files": [
       "dist/**/*",
       "build/icon.ico",
+      "build/icon.png",
+      "build/icons/**/*",
       "main.cjs",
       "preload.cjs",
       "chat-storage.cjs",
@@ -75,6 +80,27 @@
       "target": [
         "portable"
       ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icons",
+      "category": "Utility",
+      "deb": {
+        "depends": [
+          "libsecret-1-0"
+        ]
+      }
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "artifactName": "${productName}-${version}-mac.${ext}"
     },
     "asar": true
   }

@@ -46,11 +46,42 @@ if (!hasSingleInstanceLock) {
 }
 
 function showMainWindow() {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+  }
 
   if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.show();
   mainWindow.focus();
+}
+
+function getWindowIconPath() {
+  return process.platform === 'win32'
+    ? path.join(__dirname, 'build', 'icon.ico')
+    : path.join(__dirname, 'build', 'icons', '512x512.png');
+}
+
+function getTrayIconPath() {
+  return process.platform === 'win32'
+    ? path.join(__dirname, 'build', 'icon.ico')
+    : path.join(__dirname, 'build', 'icons', '32x32.png');
+}
+
+function isSafeStorageAvailable() {
+  try {
+    if (
+      typeof safeStorage.isEncryptionAvailable !== 'function' ||
+      !safeStorage.isEncryptionAvailable()
+    ) {
+      return false;
+    }
+
+    return process.platform !== 'linux'
+      || typeof safeStorage.getSelectedStorageBackend !== 'function'
+      || safeStorage.getSelectedStorageBackend() !== 'basic_text';
+  } catch {
+    return false;
+  }
 }
 
 app.on('second-instance', () => {
@@ -81,7 +112,7 @@ function getGeminiKey() {
   const config = readSecureConfig();
   const encryptedKey = config[GEMINI_KEY_FIELD];
 
-  if (!encryptedKey || !safeStorage.isEncryptionAvailable()) {
+  if (!encryptedKey || !isSafeStorageAvailable()) {
     return '';
   }
 
@@ -106,7 +137,7 @@ function getGeminiSettings() {
     hasKey: Boolean(key),
     maskedKey: getGeminiKeyMask(key),
     enabled: enabled === true,
-    encryptionAvailable: safeStorage.isEncryptionAvailable()
+    encryptionAvailable: isSafeStorageAvailable()
   };
 }
 
@@ -117,7 +148,7 @@ function saveGeminiKey(key) {
     throw new Error('Gemini API key is required.');
   }
 
-  if (!safeStorage.isEncryptionAvailable()) {
+  if (!isSafeStorageAvailable()) {
     throw new Error('Secure local storage is unavailable on this system.');
   }
 
@@ -178,6 +209,26 @@ function sendTelegramStatus(status) {
 
   }
 
+}
+
+function serializeTelegramErrorResponse(error) {
+  const message = error instanceof Error
+    ? error.message
+    : String(error ?? 'Telegram request failed.');
+
+  const payload = {
+    success: false,
+    error: message
+  };
+
+  if (error?.code === 'TELEGRAM_FLOOD_WAIT') {
+    payload.code = 'TELEGRAM_FLOOD_WAIT';
+    payload.waitSeconds = Number.isFinite(Number(error.waitSeconds))
+      ? Number(error.waitSeconds)
+      : 0;
+  }
+
+  return payload;
 }
 
 const {
@@ -253,9 +304,9 @@ function getGeminiErrorCode(error) {
 
 
 function createWindow() {
-   mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     title: 'XMSGi',
-    icon: path.join(__dirname, 'build', 'icon.ico'),
+    icon: getWindowIconPath(),
     width: 1200,
     height: 800,
     minWidth: 900,
@@ -272,7 +323,7 @@ function createWindow() {
   });
 
   mainWindow.on('close', (event) => {
-    if (isQuitting) return;
+    if (isQuitting || process.platform !== 'win32' || !tray) return;
 
     event.preventDefault();
     mainWindow.hide();
@@ -322,15 +373,25 @@ function requestQuit() {
 function createTray() {
   if (tray) return;
 
-  tray = new Tray(path.join(__dirname, 'build', 'icon.ico'));
-  tray.setToolTip('XMSGi');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'XMSGi', enabled: false },
-    { type: 'separator' },
-    { label: 'Open XMSGi', click: showMainWindow },
-    { label: 'Exit', click: requestQuit },
-  ]));
-  tray.on('double-click', showMainWindow);
+  try {
+    tray = new Tray(getTrayIconPath());
+    tray.setToolTip('XMSGi');
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: 'XMSGi', enabled: false },
+      { type: 'separator' },
+      { label: 'Open XMSGi', click: showMainWindow },
+      { label: 'Exit', click: requestQuit },
+    ]));
+    tray.on('double-click', showMainWindow);
+  } catch (error) {
+    try {
+      tray?.destroy();
+    } catch {
+      // Ignore cleanup failures when the desktop tray backend is unavailable.
+    }
+    tray = null;
+    console.warn('System tray is unavailable; continuing without it:', error?.code || error?.name || 'unknown');
+  }
 }
 
 ipcMain.handle('gemini-generate', async (event, data = {}) => {
@@ -458,7 +519,7 @@ ipcMain.handle('telegram-connect', async (event) => {
     return { success: true };
   } catch (error) {
     console.error('Telegram connection error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -480,7 +541,7 @@ ipcMain.handle('telegram-config', async (event) => {
     };
   } catch (error) {
     console.error('Telegram config read error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -510,10 +571,7 @@ ipcMain.handle('telegram-save-credentials', async (event, data = {}) => {
     };
   } catch (error) {
     console.error('Telegram credentials save error:', error?.code || error?.name || 'unknown');
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Telegram API credentials could not be saved securely.'
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -527,7 +585,7 @@ ipcMain.handle('telegram-auth-state', async (event) => {
     return { success: true, authState: getSafeTelegramAuthState() };
   } catch (error) {
     console.error('Telegram auth state error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -542,7 +600,7 @@ ipcMain.handle('telegram-sign-out-keep-session', async (event) => {
     return { success: true, authState: getSafeTelegramAuthState() };
   } catch (error) {
     console.error('Telegram sign out error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -557,7 +615,7 @@ ipcMain.handle('telegram-welcome-back', async (event) => {
     return { success: true, authState: getSafeTelegramAuthState() };
   } catch (error) {
     console.error('Telegram Welcome Back error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -572,7 +630,7 @@ ipcMain.handle('telegram-forget-account', async (event) => {
     return { success: true, authState: getSafeTelegramAuthState() };
   } catch (error) {
     console.error('Telegram account removal error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -587,7 +645,7 @@ ipcMain.handle('telegram-clear-session', async (event) => {
     return { success: true, ...result };
   } catch (error) {
     console.error('Telegram clear session error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -610,7 +668,7 @@ ipcMain.handle('telegram-login', async (event, data = {}) => {
     };
   } catch (error) {
     console.error('Telegram login error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -625,7 +683,7 @@ ipcMain.handle('telegram-chats', async (event) => {
     return { success: true, chats };
   } catch (error) {
     console.error('Telegram chats error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -641,7 +699,10 @@ ipcMain.handle('telegram-chat-avatar', async (event, chatId) => {
     return { success: true, avatarDataUrl: await getChatAvatar(validatedChatId) };
   } catch (error) {
     console.error('Telegram chat avatar error:', error?.code || error?.name || 'unknown');
-    return { success: false, avatarDataUrl: '', error: error.message };
+    return {
+      ...serializeTelegramErrorResponse(error),
+      avatarDataUrl: ''
+    };
   }
 });
 
@@ -657,7 +718,7 @@ ipcMain.handle('telegram-chat-permissions', async (event, chatId) => {
     return { success: true, permissions: await getChatPermissions(validatedChatId) };
   } catch (error) {
     console.error('Telegram chat permissions error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -676,7 +737,7 @@ ipcMain.handle('telegram-chat-history', async (event, data = {}) => {
     };
   } catch (error) {
     console.error('Telegram chat history error:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -701,10 +762,7 @@ ipcMain.handle('telegram-contacts', async (event) => {
   } catch (error) {
     console.error('Telegram contacts error:', error?.code || error?.name || 'unknown');
 
-    return {
-      success: false,
-      error: error.message
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -722,10 +780,7 @@ ipcMain.handle('telegram-effects', async (event) => {
     };
   } catch (error) {
     console.error('Telegram effects error:', error?.code || error?.name || 'unknown');
-    return {
-      success: false,
-      error: error.message
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -752,10 +807,7 @@ ipcMain.handle('telegram-find-chat', async (event, query) => {
   } catch (error) {
     console.error('Telegram find chat error:', error?.code || error?.name || 'unknown');
 
-    return {
-      success: false,
-      error: error.message
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -790,10 +842,7 @@ ipcMain.handle('telegram-send', async (event, data) => {
   } catch (error) {
     console.error('Telegram send error:', error?.code || error?.name || 'unknown');
 
-    return {
-      success: false,
-      error: error.message
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -813,7 +862,7 @@ ipcMain.handle('telegram-verify-sent', async (event, data) => {
     };
   } catch (error) {
     console.error('Telegram sent-message verification failed:', error?.code || error?.name || 'unknown');
-    return { success: false, error: error.message };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -853,10 +902,7 @@ ipcMain.handle('telegram-schedule', async (event, data) => {
   } catch (error) {
     console.error('Schedule error:', error?.code || error?.name || 'unknown');
 
-    return {
-      success: false,
-      error: error.message
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -885,10 +931,7 @@ ipcMain.handle('telegram-cancel', async (event, data) => {
   } catch (error) {
     console.error('Cancel error:', error?.code || error?.name || 'unknown');
 
-    return {
-      success: false,
-      error: error.message
-    };
+    return serializeTelegramErrorResponse(error);
   }
 });
 
@@ -903,20 +946,17 @@ app.whenReady().then(() => {
   createTray();
 
   app.on('activate', () => {
-
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-
+    showMainWindow();
     createTray();
-
   });
 
 });
 
 
 app.on('window-all-closed', () => {
-  // Closing the window is handled by mainWindow.close and keeps the app in the tray.
+  if (process.platform === 'linux' || (process.platform === 'win32' && !tray)) {
+    requestQuit();
+  }
 });
 
 app.on('before-quit', (event) => {

@@ -17,6 +17,26 @@ describe('production packaging', () => {
     expect(packageJson.build.asar).toBe(true);
   });
 
+  it('configures Linux and macOS packages without replacing the Windows target', () => {
+    expect(packageJson.scripts.dist).toBe('npm run build && electron-builder --win');
+    expect(packageJson.scripts['dist:linux']).toBe('npm run build && electron-builder --linux');
+    expect(packageJson.scripts['dist:mac']).toBe('npm run build && electron-builder --mac');
+    expect(packageJson.build.linux.target).toEqual(['AppImage', 'deb']);
+    expect(packageJson.build.mac.target).toEqual(['dmg']);
+    expect(packageJson.build.linux.icon).toBe('build/icons');
+    expect(packageJson.build.mac.icon).toBe('build/icon.png');
+    expect(packageJson.build.linux.deb.depends).toContain('libsecret-1-0');
+
+    const productionFiles = new Set(packageJson.build.files);
+    expect(productionFiles.has('build/icons/**/*')).toBe(true);
+    expect(productionFiles.has('build/icon.png')).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'build/icon.png'))).toBe(true);
+
+    for (const size of [16, 24, 32, 48, 64, 128, 256, 512]) {
+      expect(fs.existsSync(path.join(projectRoot, `build/icons/${size}x${size}.png`))).toBe(true);
+    }
+  });
+
   it('includes every runtime file required by the Electron main process', () => {
     const productionFiles = new Set(packageJson.build.files);
     const requiredRuntimeFiles = [
