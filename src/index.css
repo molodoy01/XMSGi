@@ -2050,6 +2050,29 @@ textarea {
   max-width: min(470px, calc(100vw - 32px));
   height: min(210px, calc(100vh - 120px));
   max-height: min(210px, calc(100vh - 120px));
+  animation: message-emoji-picker-enter 0.18s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.message-emoji-picker-shell.is-closing {
+  pointer-events: none;
+  animation: message-emoji-picker-exit 0.16s ease-in both;
+}
+
+@keyframes message-emoji-picker-enter {
+  from { opacity: 0; transform: translateY(-7px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes message-emoji-picker-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-5px) scale(0.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-emoji-picker-shell,
+  .message-emoji-picker-shell.is-closing {
+    animation: none;
+  }
 }
 
 .message-emoji-picker {
@@ -2082,6 +2105,8 @@ textarea {
 .message-emoji-picker.is-expanded .message-emoji-viewport {
   overflow-x: auto;
   overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
   scrollbar-width: auto;
   scrollbar-color: auto;
 }
@@ -2100,6 +2125,8 @@ textarea {
   width: 400px;
   height: 175px;
   flex: 0 0 400px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .message-emoji-picker.is-expanded .message-emoji-viewport::-webkit-scrollbar {
@@ -2129,6 +2156,11 @@ textarea {
 .message-emoji-picker.is-expanded .message-emoji-viewport::-webkit-scrollbar-thumb {
   border-radius: 6px;
   background: rgba(154, 168, 184, 0.56);
+  transition: background-color 0.16s ease;
+}
+
+.message-emoji-picker.is-expanded .message-emoji-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(190, 202, 214, 0.76);
 }
 
 .message-emoji-option {
@@ -2155,12 +2187,17 @@ textarea {
 .message-emoji-option:hover,
 .message-emoji-option:focus-visible {
   background: rgba(111, 119, 130, 0.32);
-  outline: none;
+  outline-color: rgba(190, 202, 214, 0.62);
   transform: translateY(4px);
 }
 
 .message-emoji-option.is-recent {
   background: rgba(111, 119, 130, 0.12);
+}
+
+.message-emoji-option.is-recent:hover,
+.message-emoji-option.is-recent:focus-visible {
+  background: rgba(111, 119, 130, 0.32);
 }
 
 .message-emoji-close {

@@ -220,9 +220,11 @@ export function SchedulePage(props: SchedulePageProps) {
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const effectMenuShellRef = useRef<HTMLDivElement>(null);
   const messageOptionsButtonRef = useRef<HTMLButtonElement>(null);
+  const emojiPickerCloseTimeoutRef = useRef<number | null>(null);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [messageOptionsOpen, setMessageOptionsOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [emojiPickerClosing, setEmojiPickerClosing] = useState(false);
   const [availableEmojis, setAvailableEmojis] = useState<string[]>([]);
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
   const [showMoreEmojis, setShowMoreEmojis] = useState(false);
@@ -277,6 +279,12 @@ export function SchedulePage(props: SchedulePageProps) {
       behavior: 'smooth',
     });
   }, [emojiPickerOpen, currentEmojiPage]);
+
+  useEffect(() => () => {
+    if (emojiPickerCloseTimeoutRef.current !== null) {
+      window.clearTimeout(emojiPickerCloseTimeoutRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isEmojiScrollbarActive) return;
@@ -419,12 +427,27 @@ export function SchedulePage(props: SchedulePageProps) {
     setMessage(nextMessage);
   };
 
+  const closeEmojiPicker = () => {
+    if (!emojiPickerOpen) return;
+    setEmojiPickerOpen(false);
+    setEmojiPickerClosing(true);
+    emojiPickerCloseTimeoutRef.current = window.setTimeout(() => {
+      setEmojiPickerClosing(false);
+      emojiPickerCloseTimeoutRef.current = null;
+    }, 180);
+  };
+
   const handleEmojiPickerToggle = () => {
     if (emojiPickerOpen) {
-      setEmojiPickerOpen(false);
+      closeEmojiPicker();
       return;
     }
 
+    if (emojiPickerCloseTimeoutRef.current !== null) {
+      window.clearTimeout(emojiPickerCloseTimeoutRef.current);
+      emojiPickerCloseTimeoutRef.current = null;
+    }
+    setEmojiPickerClosing(false);
     setAvailableEmojis(COMMON_EMOJIS);
     setShowMoreEmojis(false);
     setCurrentEmojiPage(0);
@@ -465,7 +488,7 @@ export function SchedulePage(props: SchedulePageProps) {
       messageMaxLength,
     );
     handleComposerMessageChange(nextMessage);
-    setEmojiPickerOpen(false);
+    closeEmojiPicker();
     requestAnimationFrame(() => {
       textarea?.focus();
       const cursorPosition = Math.min(selectionStart + emoji.length, nextMessage.length);
@@ -1096,8 +1119,8 @@ export function SchedulePage(props: SchedulePageProps) {
                     >
                       <Smile className="message-attachment-smile" size={17} strokeWidth={1.8} aria-hidden="true" />
                     </button>
-                    {emojiPickerOpen && (
-                      <div className="message-emoji-picker-shell">
+                    {(emojiPickerOpen || emojiPickerClosing) && (
+                      <div className={`message-emoji-picker-shell ${emojiPickerClosing ? 'is-closing' : ''}`} aria-hidden={emojiPickerClosing}>
                         <div
                           className={`message-emoji-picker ${showMoreEmojis ? 'is-expanded' : ''}`}
                           role="dialog"
@@ -1165,7 +1188,7 @@ export function SchedulePage(props: SchedulePageProps) {
                           className="message-emoji-close"
                           aria-label="Close emoji picker"
                           title="Close"
-                          onClick={() => setEmojiPickerOpen(false)}
+                          onClick={closeEmojiPicker}
                         >
                           <X size={20} strokeWidth={2} aria-hidden="true" />
                         </button>
