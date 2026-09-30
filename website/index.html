@@ -1,11 +1,8 @@
 ﻿<!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta
@@ -347,7 +344,12 @@
             padding: 30px;
             border: 1px solid var(--border);
             border-radius: 15px;
-            background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.045),
+                    rgba(255,255,255,.018)
+                );
         }
 
         .ai-copy h2 {
@@ -395,7 +397,12 @@
             padding: 30px;
             border: 1px solid var(--border);
             border-radius: 15px;
-            background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.045),
+                    rgba(255,255,255,.018)
+                );
         }
 
         .transparency-details {
@@ -448,6 +455,10 @@
             margin: 0 auto 24px;
             color: var(--muted);
             font-size: 14px;
+        }
+
+        .download-box .github-button {
+            margin-bottom: 12px;
         }
 
         /* FOOTER */
@@ -554,43 +565,49 @@
             }
         }
     </style>
-
 </head>
 
 <body>
 
 <header class="container">
-
     <nav>
-
         <a class="brand" href="#">XMSGi</a>
 
         <div class="nav-links">
-
             <a href="#screenshots" data-i18n="navScreenshots">Screenshots</a>
-
             <a href="#how-it-works" data-i18n="navHow">How it works</a>
-
             <a href="download.html" data-i18n="navDownloads">Downloads</a>
-
             <a href="#trust" data-i18n="navTrust">Trust</a>
 
-            <a href="https://github.com/molodoy01/XMSGi">GitHub</a>
+            <a
+                href="https://github.com/molodoy01/XMSGi"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                GitHub
+            </a>
 
             <div class="lang-switcher" aria-label="Language">
-
-                <button type="button" class="lang-button active" data-lang="en">EN</button>
+                <button
+                    type="button"
+                    class="lang-button active"
+                    data-lang="en"
+                >
+                    EN
+                </button>
 
                 <span>/</span>
 
-                <button type="button" class="lang-button" data-lang="ru">RU</button>
-
+                <button
+                    type="button"
+                    class="lang-button"
+                    data-lang="ru"
+                >
+                    RU
+                </button>
             </div>
-
         </div>
-
     </nav>
-
 </header>
 
 <main>
@@ -598,55 +615,73 @@
     <!-- HERO -->
 
     <section class="hero">
-
         <div class="container">
 
-            <p class="eyebrow" data-i18n="eyebrow">Desktop release · v2.2.3</p>
+            <p class="eyebrow" data-i18n="eyebrow">
+                Desktop release · v2.2.3
+            </p>
 
             <h1>
+                <span data-i18n="heroTitle">
+                    Telegram messages,
+                </span>
 
-                <span data-i18n="heroTitle">Telegram messages,</span>
-
-                <span class="gradient" data-i18n="heroGradient">when you choose.</span>
-
+                <span
+                    class="gradient"
+                    data-i18n="heroGradient"
+                >
+                    when you choose.
+                </span>
             </h1>
 
-            <p class="hero-description" data-i18n="heroDescription">
-
-                Write, schedule, and review Telegram messages from your own account. Available for Windows, Linux, and macOS.
-
+            <p
+                class="hero-description"
+                data-i18n="heroDescription"
+            >
+                Write, schedule, and review Telegram messages from your own account.
+                Available for Windows, Linux, and macOS.
             </p>
 
             <div class="actions">
-
                 <a
                     class="button primary"
                     href="download.html"
                 >
-
-                    <span data-i18n="downloadMain">Download XMSGi 2.2.3</span>
-
+                    <span data-i18n="downloadMain">
+                        Download XMSGi 2.2.3
+                    </span>
                 </a>
-
             </div>
 
         </div>
-
     </section>
 
-    <section class="screenshots-section" id="screenshots">
 
+    <section
+        class="screenshots-section"
+        id="screenshots"
+    >
         <div class="container">
 
             <div class="screenshots-heading">
 
-                <p class="section-kicker" data-i18n="inside">Inside XMSGi</p>
+                <p
+                    class="section-kicker"
+                    data-i18n="inside"
+                >
+                    Inside XMSGi
+                </p>
 
-                <h2 data-i18n="screenshots">Screenshots</h2>
+                <h2 data-i18n="screenshots">
+                    Screenshots
+                </h2>
 
-                <p data-i18n="screenshotsDescription">Explore the Telegram scheduling workspace in XMSGi v2.2.3.</p>
+                <p data-i18n="screenshotsDescription">
+                    Explore the Telegram scheduling workspace in XMSGi v2.2.3.
+                </p>
 
             </div>
+
 
             <div class="gallery">
 
@@ -666,9 +701,7 @@
                         aria-label="Previous screenshot"
                         data-i18n-attr="aria-label:previous"
                     >
-
                         ‹
-
                     </button>
 
                     <button
@@ -678,15 +711,14 @@
                         aria-label="Next screenshot"
                         data-i18n-attr="aria-label:next"
                     >
-
                         ›
-
                     </button>
 
-                    <div id="gallery-counter" class="gallery-counter">
-
+                    <div
+                        id="gallery-counter"
+                        class="gallery-counter"
+                    >
                         01 / 04
-
                     </div>
 
                 </div>
@@ -694,38 +726,58 @@
             </div>
 
         </div>
-
     </section>
 
 
-
-    <section class="ai-section" id="how-it-works">
-
+    <section
+        class="ai-section"
+        id="how-it-works"
+    >
         <div class="container">
 
             <div class="ai-panel">
 
                 <div class="ai-copy">
 
-                    <p class="section-kicker" data-i18n="telegram">
+                    <p
+                        class="section-kicker"
+                        data-i18n="telegram"
+                    >
+                        Telegram integration
+                    </p>
 
-                    <h2 data-i18n="schedule">Messages on your schedule.</h2>
+                    <h2 data-i18n="schedule">
+                        Messages on your schedule.
+                    </h2>
 
-                    <p data-i18n="telegramDescription">XMSGi connects to your Telegram account so you can prepare messages and choose exactly when they are sent.</p>
+                    <p data-i18n="telegramDescription">
+                        XMSGi connects to your Telegram account so you can prepare
+                        messages and choose exactly when they are sent.
+                    </p>
 
                 </div>
 
+
                 <div class="ai-details">
 
-                    <strong data-i18n="everyday">Built for everyday scheduling</strong>
+                    <strong data-i18n="everyday">
+                        Built for everyday scheduling
+                    </strong>
 
                     <ul>
 
-                        <li data-i18n="bullet1">Choose chats, groups, and dialogs through Telegram integration.</li>
+                        <li data-i18n="bullet1">
+                            Choose chats, groups, and dialogs through Telegram integration.
+                        </li>
 
-                        <li data-i18n="bullet2">Write a message, add attachments, and send now or schedule it for a chosen date and time.</li>
+                        <li data-i18n="bullet2">
+                            Write a message, add attachments, and send now or schedule
+                            it for a chosen date and time.
+                        </li>
 
-                        <li data-i18n="bullet3">Review delivery outcomes in the sending history.</li>
+                        <li data-i18n="bullet3">
+                            Review delivery outcomes in the sending history.
+                        </li>
 
                     </ul>
 
@@ -734,36 +786,60 @@
             </div>
 
         </div>
-
     </section>
 
-    <section class="transparency-section" id="trust">
 
+    <section
+        class="transparency-section"
+        id="trust"
+    >
         <div class="container">
 
             <div class="transparency-panel">
 
                 <div class="transparency-copy">
 
-                    <p class="section-kicker" data-i18n="security">Security and sessions</p>
+                    <p
+                        class="section-kicker"
+                        data-i18n="security"
+                    >
+                        Security and sessions
+                    </p>
 
-                    <h2 data-i18n="accountTitle">Your account, your session, your timing.</h2>
+                    <h2 data-i18n="accountTitle">
+                        Your account, your session, your timing.
+                    </h2>
 
-                    <p data-i18n="accountDescription">XMSGi works with a Telegram user account, not a bot. The session is kept locally on the device so you can sign out without losing access for later.</p>
+                    <p data-i18n="accountDescription">
+                        XMSGi works with a Telegram user account, not a bot.
+                        The session is kept locally on the device so you can
+                        sign out without losing access for later.
+                    </p>
 
                 </div>
 
+
                 <div class="transparency-details">
 
-                    <strong data-i18n="stays">What stays with you</strong>
+                    <strong data-i18n="stays">
+                        What stays with you
+                    </strong>
 
                     <ul>
 
-                        <li data-i18n="stays1">Sign out while keeping the Telegram session available for a later return.</li>
+                        <li data-i18n="stays1">
+                            Sign out while keeping the Telegram session available
+                            for a later return.
+                        </li>
 
-                        <li data-i18n="stays2">Sign out to remove the saved Telegram session from the device.</li>
+                        <li data-i18n="stays2">
+                            Sign out to remove the saved Telegram session from the device.
+                        </li>
 
-                        <li data-i18n="stays3">Sensitive local data is protected with Electron safeStorage where the operating system supports it.</li>
+                        <li data-i18n="stays3">
+                            Sensitive local data is protected with Electron safeStorage
+                            where the operating system supports it.
+                        </li>
 
                     </ul>
 
@@ -772,52 +848,77 @@
             </div>
 
         </div>
-
     </section>
-
 
 
     <!-- DOWNLOAD -->
 
-    <section class="download-section" id="downloads">
-
+    <section
+        class="download-section"
+        id="downloads"
+    >
         <div class="container">
 
             <div class="download-box">
 
-                <h2 data-i18n="downloadTitle">Download XMSGi v2.2.3</h2>
+                <h2 data-i18n="downloadTitle">
+                    Download XMSGi v2.2.3
+                </h2>
 
                 <p data-i18n="githubHosted">
                     Official release files are hosted on GitHub Releases.
                 </p>
 
+
+                <!-- GITHUB REPOSITORY -->
+
+                <div class="actions github-button">
+
+                    <a
+                        class="button secondary"
+                        href="https://github.com/molodoy01/XMSGi"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <span data-i18n="githubRepository">
+                            GitHub Repository
+                        </span>
+                    </a>
+
+                </div>
+
+
+                <!-- DIRECT DOWNLOADS -->
+
                 <div class="actions">
 
                     <a
                         class="button primary"
-                        href="download.html"
+                        href="https://github.com/molodoy01/XMSGi/releases/download/v2.2.3/XMSGi.2.2.3.exe"
                     >
-
-                        <span data-i18n="windows">Windows Portable (.exe)</span>
-
+                        <span data-i18n="windows">
+                            Windows Portable (.exe)
+                        </span>
                     </a>
+
 
                     <a
                         class="button platform"
-                        href="download.html"
+                        href="https://github.com/molodoy01/XMSGi/releases/download/v2.2.3/XMSGi-2.2.3.AppImage"
                     >
-
-                        <span data-i18n="linux">Linux AppImage / .deb</span>
-
+                        <span data-i18n="linux">
+                            Linux AppImage
+                        </span>
                     </a>
+
 
                     <a
                         class="button platform"
-                        href="download.html"
+                        href="https://github.com/molodoy01/XMSGi/releases/download/v2.2.3/XMSGi-2.2.3-mac.dmg"
                     >
-
-                        <span data-i18n="macos">macOS DMG</span>
-
+                        <span data-i18n="macos">
+                            macOS DMG
+                        </span>
                     </a>
 
                 </div>
@@ -825,29 +926,32 @@
             </div>
 
         </div>
-
     </section>
 
 </main>
-
 
 
 <footer>
 
     <div class="container footer-inner">
 
-        <span>© 2026 XMSGi</span>
+        <span>
+            © 2026 XMSGi
+        </span>
 
-        <a href="https://github.com/molodoy01/XMSGi">
-
-            <span data-i18n="githubFooter">Open source on GitHub</span>
-
+        <a
+            href="https://github.com/molodoy01/XMSGi"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            <span data-i18n="githubFooter">
+                Open source on GitHub
+            </span>
         </a>
 
     </div>
 
 </footer>
-
 
 
 <script>
@@ -856,228 +960,384 @@
 
         en: {
 
-            title: "XMSGi — Telegram messages, on your time",
+            title:
+                "XMSGi — Telegram messages, on your time",
 
-            description: "XMSGi — a desktop app for writing and scheduling Telegram messages from your own account.",
+            description:
+                "XMSGi — a desktop app for writing and scheduling Telegram messages from your own account.",
 
-            navScreenshots: "Screenshots",
+            navScreenshots:
+                "Screenshots",
 
-            navHow: "How it works",
+            navHow:
+                "How it works",
 
-            navDownloads: "Downloads",
+            navDownloads:
+                "Downloads",
 
-            navTrust: "Trust",
+            navTrust:
+                "Trust",
 
-            eyebrow: "Desktop release · v2.2.3",
+            eyebrow:
+                "Desktop release · v2.2.3",
 
-            heroTitle: "Telegram messages,",
+            heroTitle:
+                "Telegram messages,",
 
-            heroGradient: "when you choose.",
+            heroGradient:
+                "when you choose.",
 
-            heroDescription: "Write, schedule, and review Telegram messages from your own account. Available for Windows, Linux, and macOS.",
+            heroDescription:
+                "Write, schedule, and review Telegram messages from your own account. Available for Windows, Linux, and macOS.",
 
-            downloadMain: "Download XMSGi 2.2.3",
+            downloadMain:
+                "Download XMSGi 2.2.3",
 
-            inside: "Inside XMSGi",
+            inside:
+                "Inside XMSGi",
 
-            screenshots: "Screenshots",
+            screenshots:
+                "Screenshots",
 
-            screenshotsDescription: "Explore the Telegram scheduling workspace in XMSGi v2.2.3.",
+            screenshotsDescription:
+                "Explore the Telegram scheduling workspace in XMSGi v2.2.3.",
 
-            previous: "Previous screenshot",
+            previous:
+                "Previous screenshot",
 
-            next: "Next screenshot",
+            next:
+                "Next screenshot",
 
-            telegram: "Telegram integration",
+            telegram:
+                "Telegram integration",
 
-            schedule: "Messages on your schedule.",
+            schedule:
+                "Messages on your schedule.",
 
-            telegramDescription: "XMSGi connects to your Telegram account so you can prepare messages and choose exactly when they are sent.",
+            telegramDescription:
+                "XMSGi connects to your Telegram account so you can prepare messages and choose exactly when they are sent.",
 
-            everyday: "Built for everyday scheduling",
+            everyday:
+                "Built for everyday scheduling",
 
-            bullet1: "Choose chats, groups, and dialogs through Telegram integration.",
+            bullet1:
+                "Choose chats, groups, and dialogs through Telegram integration.",
 
-            bullet2: "Write a message, add attachments, and send now or schedule it for a chosen date and time.",
+            bullet2:
+                "Write a message, add attachments, and send now or schedule it for a chosen date and time.",
 
-            bullet3: "Review delivery outcomes in the sending history.",
+            bullet3:
+                "Review delivery outcomes in the sending history.",
 
-            security: "Security and sessions",
+            security:
+                "Security and sessions",
 
-            accountTitle: "Your account, your session, your timing.",
+            accountTitle:
+                "Your account, your session, your timing.",
 
-            accountDescription: "XMSGi works with a Telegram user account, not a bot. The session is kept locally on the device so you can sign out without losing access for later.",
+            accountDescription:
+                "XMSGi works with a Telegram user account, not a bot. The session is kept locally on the device so you can sign out without losing access for later.",
 
-            stays: "What stays with you",
+            stays:
+                "What stays with you",
 
-            stays1: "Sign out while keeping the Telegram session available for a later return.",
+            stays1:
+                "Sign out while keeping the Telegram session available for a later return.",
 
-            stays2: "Sign out to remove the saved Telegram session from the device.",
+            stays2:
+                "Sign out to remove the saved Telegram session from the device.",
 
-            stays3: "Sensitive local data is protected with Electron safeStorage where the operating system supports it.",
+            stays3:
+                "Sensitive local data is protected with Electron safeStorage where the operating system supports it.",
 
-            downloadTitle: "Download XMSGi v2.2.3",
+            downloadTitle:
+                "Download XMSGi v2.2.3",
 
-            githubHosted: "Official release files are hosted on GitHub Releases.",
+            githubHosted:
+                "Official release files are hosted on GitHub Releases.",
 
-            windows: "Windows Portable (.exe)",
+            githubRepository:
+                "GitHub Repository",
 
-            linux: "Linux AppImage / .deb",
+            windows:
+                "Windows Portable (.exe)",
 
-            macos: "macOS DMG",
+            linux:
+                "Linux AppImage",
 
-            githubFooter: "Open source on GitHub"
+            macos:
+                "macOS DMG",
+
+            githubFooter:
+                "Open source on GitHub"
 
         },
 
+
         ru: {
 
-            title: "XMSGi — сообщения в Telegram, в удобное для вас время",
+            title:
+                "XMSGi — сообщения в Telegram, в удобное для вас время",
 
-            description: "XMSGi — приложение для компьютера, позволяющее создавать и планировать сообщения в Telegram от своего аккаунта.",
+            description:
+                "XMSGi — приложение для компьютера, позволяющее создавать и планировать сообщения в Telegram от своего аккаунта.",
 
-            navScreenshots: "Скриншоты",
+            navScreenshots:
+                "Скриншоты",
 
-            navHow: "Как это работает",
+            navHow:
+                "Как это работает",
 
-            navDownloads: "Скачать",
+            navDownloads:
+                "Скачать",
 
-            navTrust: "Безопасность",
+            navTrust:
+                "Безопасность",
 
-            eyebrow: "Версия для компьютера · v2.2.3",
+            eyebrow:
+                "Версия для компьютера · v2.2.3",
 
-            heroTitle: "Сообщения в Telegram,",
+            heroTitle:
+                "Сообщения в Telegram,",
 
-            heroGradient: "когда вы хотите.",
+            heroGradient:
+                "когда вы хотите.",
 
-            heroDescription: "Создавайте, планируйте и просматривайте сообщения в Telegram от своего аккаунта. Доступно для Windows, Linux и macOS.",
+            heroDescription:
+                "Создавайте, планируйте и просматривайте сообщения в Telegram от своего аккаунта. Доступно для Windows, Linux и macOS.",
 
-            downloadMain: "Скачать XMSGi 2.2.3",
+            downloadMain:
+                "Скачать XMSGi 2.2.3",
 
-            inside: "Внутри XMSGi",
+            inside:
+                "Внутри XMSGi",
 
-            screenshots: "Скриншоты",
+            screenshots:
+                "Скриншоты",
 
-            screenshotsDescription: "Рабочее пространство для планирования сообщений в Telegram в XMSGi v2.2.3.",
+            screenshotsDescription:
+                "Рабочее пространство для планирования сообщений в Telegram в XMSGi v2.2.3.",
 
-            previous: "Предыдущий скриншот",
+            previous:
+                "Предыдущий скриншот",
 
-            next: "Следующий скриншот",
+            next:
+                "Следующий скриншот",
 
-            telegram: "Интеграция с Telegram",
+            telegram:
+                "Интеграция с Telegram",
 
-            schedule: "Сообщения по вашему расписанию.",
+            schedule:
+                "Сообщения по вашему расписанию.",
 
-            telegramDescription: "XMSGi подключается к вашему аккаунту Telegram, чтобы вы могли подготовить сообщение и точно выбрать время его отправки.",
+            telegramDescription:
+                "XMSGi подключается к вашему аккаунту Telegram, чтобы вы могли подготовить сообщение и точно выбрать время его отправки.",
 
-            everyday: "Для повседневного планирования",
+            everyday:
+                "Для повседневного планирования",
 
-            bullet1: "Выбирайте чаты, группы и диалоги через интеграцию с Telegram.",
+            bullet1:
+                "Выбирайте чаты, группы и диалоги через интеграцию с Telegram.",
 
-            bullet2: "Пишите сообщения, добавляйте вложения и отправляйте их сразу или планируйте на выбранную дату и время.",
+            bullet2:
+                "Пишите сообщения, добавляйте вложения и отправляйте их сразу или планируйте на выбранную дату и время.",
 
-            bullet3: "Просматривайте результаты отправки в истории.",
+            bullet3:
+                "Просматривайте результаты отправки в истории.",
 
-            security: "Безопасность и сессии",
+            security:
+                "Безопасность и сессии",
 
-            accountTitle: "Ваш аккаунт, ваша сессия, ваше время.",
+            accountTitle:
+                "Ваш аккаунт, ваша сессия, ваше время.",
 
-            accountDescription: "XMSGi работает с пользовательским аккаунтом Telegram, а не с ботом. Сессия хранится локально на устройстве, поэтому можно выйти из аккаунта и вернуться позже.",
+            accountDescription:
+                "XMSGi работает с пользовательским аккаунтом Telegram, а не с ботом. Сессия хранится локально на устройстве, поэтому можно выйти из аккаунта и вернуться позже.",
 
-            stays: "Что остаётся у вас",
+            stays:
+                "Что остаётся у вас",
 
-            stays1: "Выйдите из аккаунта, сохранив Telegram-сессию для последующего входа.",
+            stays1:
+                "Выйдите из аккаунта, сохранив Telegram-сессию для последующего входа.",
 
-            stays2: "Выйдите из аккаунта, чтобы удалить сохранённую Telegram-сессию с устройства.",
+            stays2:
+                "Выйдите из аккаунта, чтобы удалить сохранённую Telegram-сессию с устройства.",
 
-            stays3: "Чувствительные локальные данные защищаются через Electron safeStorage, если это поддерживается операционной системой.",
+            stays3:
+                "Чувствительные локальные данные защищаются через Electron safeStorage, если это поддерживается операционной системой.",
 
-            downloadTitle: "Скачать XMSGi v2.2.3",
+            downloadTitle:
+                "Скачать XMSGi v2.2.3",
 
-            githubHosted: "Официальные файлы релиза размещены в GitHub Releases.",
+            githubHosted:
+                "Официальные файлы релиза размещены в GitHub Releases.",
 
-            windows: "Windows Portable (.exe)",
+            githubRepository:
+                "Репозиторий GitHub",
 
-            linux: "Linux AppImage / .deb",
+            windows:
+                "Windows Portable (.exe)",
 
-            macos: "macOS DMG",
+            linux:
+                "Linux AppImage",
 
-            githubFooter: "Открытый исходный код на GitHub"
+            macos:
+                "macOS DMG",
+
+            githubFooter:
+                "Открытый исходный код на GitHub"
 
         }
 
     };
 
+
     const textKeys = [
 
-        "navScreenshots","navHow","navDownloads","navTrust","eyebrow",
+        "navScreenshots",
+        "navHow",
+        "navDownloads",
+        "navTrust",
 
-        "heroTitle","heroGradient","heroDescription","downloadMain","inside",
+        "eyebrow",
 
-        "screenshots","screenshotsDescription","telegram","schedule",
+        "heroTitle",
+        "heroGradient",
+        "heroDescription",
 
-        "telegramDescription","everyday","bullet1","bullet2","bullet3",
+        "downloadMain",
 
-        "security","accountTitle","accountDescription","stays","stays1",
+        "inside",
+        "screenshots",
+        "screenshotsDescription",
 
-        "stays2","stays3","downloadTitle","githubHosted","windows","linux","macos","githubFooter"
+        "telegram",
+        "schedule",
+        "telegramDescription",
+
+        "everyday",
+        "bullet1",
+        "bullet2",
+        "bullet3",
+
+        "security",
+        "accountTitle",
+        "accountDescription",
+
+        "stays",
+        "stays1",
+        "stays2",
+        "stays3",
+
+        "downloadTitle",
+        "githubHosted",
+        "githubRepository",
+
+        "windows",
+        "linux",
+        "macos",
+
+        "githubFooter"
 
     ];
 
+
     function setLanguage(lang) {
 
-        const t = translations[lang] || translations.en;
+        const t =
+            translations[lang] ||
+            translations.en;
 
         document.documentElement.lang = lang;
 
         document.title = t.title;
 
-        document.querySelector('meta[name="description"]').setAttribute("content", t.description);
+        document
+            .querySelector('meta[name="description"]')
+            .setAttribute(
+                "content",
+                t.description
+            );
+
 
         textKeys.forEach((key) => {
 
-            document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
+            document
+                .querySelectorAll(
+                    `[data-i18n="${key}"]`
+                )
+                .forEach((el) => {
 
-                el.textContent = t[key];
+                    el.textContent = t[key];
+
+                });
+
+        });
+
+
+        document
+            .querySelectorAll("[data-i18n-attr]")
+            .forEach((el) => {
+
+                const [
+                    attribute,
+                    key
+                ] =
+                    el.dataset.i18nAttr.split(":");
+
+                if (t[key]) {
+                    el.setAttribute(
+                        attribute,
+                        t[key]
+                    );
+                }
 
             });
 
-        });
 
-        document.querySelectorAll("[data-i18n-attr]").forEach((el) => {
+        document
+            .querySelectorAll(".lang-button")
+            .forEach((button) => {
 
-            const [attribute, key] = el.dataset.i18nAttr.split(":");
+                button.classList.toggle(
+                    "active",
+                    button.dataset.lang === lang
+                );
 
-            if (t[key]) el.setAttribute(attribute, t[key]);
+            });
 
-        });
 
-        document.querySelectorAll(".lang-button").forEach((button) => {
-
-            button.classList.toggle("active", button.dataset.lang === lang);
-
-        });
-
-        localStorage.setItem("xmsgi-language-v2", lang);
+        localStorage.setItem(
+            "xmsgi-language-v2",
+            lang
+        );
 
     }
 
-    document.querySelectorAll(".lang-button").forEach((button) => {
 
-        button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    document
+        .querySelectorAll(".lang-button")
+        .forEach((button) => {
 
-    });
+            button.addEventListener(
+                "click",
+                () => setLanguage(
+                    button.dataset.lang
+                )
+            );
+
+        });
+
 
     // English is always the initial language for a new browser.
 
-    setLanguage(localStorage.getItem("xmsgi-language-v2") || "en");
+    setLanguage(
+        localStorage.getItem(
+            "xmsgi-language-v2"
+        ) || "en"
+    );
 
 </script>
-
-
-
-
-
 
 
 <script>
@@ -1085,70 +1345,122 @@
     const images = [
 
         "screenshots/01.png",
-
         "screenshots/02.png",
-
         "screenshots/03.png",
-
         "screenshots/04.png"
 
     ];
 
-    const image = document.getElementById("gallery-image");
 
-    const counter = document.getElementById("gallery-counter");
+    const image =
+        document.getElementById(
+            "gallery-image"
+        );
 
-    const previous = document.getElementById("gallery-prev");
+    const counter =
+        document.getElementById(
+            "gallery-counter"
+        );
 
-    const next = document.getElementById("gallery-next");
+    const previous =
+        document.getElementById(
+            "gallery-prev"
+        );
+
+    const next =
+        document.getElementById(
+            "gallery-next"
+        );
+
 
     let current = 0;
 
+
     function showImage(index) {
 
-        current = (index + images.length) % images.length;
+        current =
+            (index + images.length) %
+            images.length;
 
-        image.src = images[current];
+        image.src =
+            images[current];
 
         counter.textContent =
 
-            String(current + 1).padStart(2, "0") +
+            String(
+                current + 1
+            ).padStart(2, "0")
 
-            " / " +
+            +
 
-            String(images.length).padStart(2, "0");
+            " / "
+
+            +
+
+            String(
+                images.length
+            ).padStart(2, "0");
 
     }
 
-    previous.addEventListener("click", () => {
 
-        showImage(current - 1);
+    previous.addEventListener(
+        "click",
+        () => {
 
-    });
-
-    next.addEventListener("click", () => {
-
-        showImage(current + 1);
-
-    });
-
-    document.addEventListener("keydown", (event) => {
-
-        if (event.key === "ArrowLeft") {
-
-            showImage(current - 1);
+            showImage(
+                current - 1
+            );
 
         }
+    );
 
-        if (event.key === "ArrowRight") {
 
-            showImage(current + 1);
+    next.addEventListener(
+        "click",
+        () => {
+
+            showImage(
+                current + 1
+            );
 
         }
+    );
 
-    });
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key ===
+                "ArrowLeft"
+            ) {
+
+                showImage(
+                    current - 1
+                );
+
+            }
+
+
+            if (
+                event.key ===
+                "ArrowRight"
+            ) {
+
+                showImage(
+                    current + 1
+                );
+
+            }
+
+        }
+    );
+
 
     let touchStartX = 0;
+
 
     image.addEventListener(
 
@@ -1156,13 +1468,19 @@
 
         (event) => {
 
-            touchStartX = event.changedTouches[0].screenX;
+            touchStartX =
+                event
+                    .changedTouches[0]
+                    .screenX;
 
         },
 
-        { passive: true }
+        {
+            passive: true
+        }
 
     );
+
 
     image.addEventListener(
 
@@ -1170,34 +1488,49 @@
 
         (event) => {
 
-            const touchEndX = event.changedTouches[0].screenX;
+            const touchEndX =
+                event
+                    .changedTouches[0]
+                    .screenX;
 
-            const difference = touchStartX - touchEndX;
+            const difference =
+                touchStartX -
+                touchEndX;
 
-            if (Math.abs(difference) < 40) {
 
+            if (
+                Math.abs(difference) <
+                40
+            ) {
                 return;
-
             }
 
-            if (difference > 0) {
 
-                showImage(current + 1);
+            if (
+                difference > 0
+            ) {
+
+                showImage(
+                    current + 1
+                );
 
             } else {
 
-                showImage(current - 1);
+                showImage(
+                    current - 1
+                );
 
             }
 
         },
 
-        { passive: true }
+        {
+            passive: true
+        }
 
     );
 
 </script>
 
 </body>
-
 </html>
