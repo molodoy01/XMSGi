@@ -7,3 +7,5 @@ release/
 *.session
 *session*
 *.log
+
+website/files/
