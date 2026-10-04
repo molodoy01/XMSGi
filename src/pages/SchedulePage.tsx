@@ -7,6 +7,7 @@ import xmsgiLogoBlack from '@/assets/logo-black-2048.png';
 import { Notification } from '@/components/Notification';
 import { ChatPicker } from '@/components/ChatPicker';
 import { MessagesPanel } from '@/components/MessagesPanel';
+import { ScheduledMessageEditModal } from '@/components/ScheduledMessageEditModal';
 import { getMessageMaxLength, insertMessageText, limitMessageText } from '@/lib/messageLimits';
 import { getNextDateTimeKeyboardField, isValidDateTimeKeyboardField, type DateTimeKeyboardField } from '@/lib/dateTimeKeyboard';
 import { resetMessageOptionsForNewMessage } from '@/lib/messageComposer';
@@ -117,11 +118,13 @@ type SchedulePageProps = {
   revealingId: string | null;
   cancelingIds: Set<string>;
   sendingIds: Set<string>;
+  editingIds: Set<string>;
   dateEditedRef: MutableRefObject<boolean>;
   timeEditedRef: MutableRefObject<boolean>;
   openPickerRef: MutableRefObject<'date' | 'time' | null>;
   handleSchedule: (payload?: { chatId: string; message: string; date: string; time: string; attachments?: string[]; silent?: boolean; effect?: string }) => void;
   handleCancelMessage: (message: ScheduledMessage) => void;
+  handleEditScheduledMessage: (message: ScheduledMessage, edit: { message: string; date: string; time: string }) => Promise<boolean>;
   handleSendNow: (message: ScheduledMessage) => void;
   handleDeleteMessage: (message: ScheduledMessage) => void;
   handleClearSent: () => void;
@@ -199,7 +202,9 @@ export function SchedulePage(props: SchedulePageProps) {
     revealingId,
     cancelingIds,
     sendingIds,
+    editingIds,
     handleCancelMessage,
+    handleEditScheduledMessage,
     handleSendNow,
     handleDeleteMessage,
     handleClearSent,
@@ -248,6 +253,7 @@ export function SchedulePage(props: SchedulePageProps) {
   const [dateYear, dateMonth, dateDay] = date.split('-');
   const [timeHours, timeMinutes] = time.split(':');
   const [attachments, setAttachments] = useState<Array<{ name: string; path: string }>>([]);
+  const [editingScheduledMessage, setEditingScheduledMessage] = useState<ScheduledMessage | null>(null);
   const restoringAttachmentsRef = useRef(false);
   const [previewAttachmentIndex, setPreviewAttachmentIndex] = useState<number | null>(null);
   const [previewPosition, setPreviewPosition] = useState<{ left: number; top: number } | null>(null);
@@ -1332,7 +1338,7 @@ export function SchedulePage(props: SchedulePageProps) {
                       type="button"
                       className="message-send-button"
                       ref={messageOptionsButtonRef}
-                      aria-label={t('composer.sendNow')}
+                      aria-label={t('composer.messageOptions')}
                       aria-expanded={messageOptionsOpen}
                       aria-haspopup="menu"
                       title={t('composer.messageOptions')}
@@ -1628,6 +1634,7 @@ export function SchedulePage(props: SchedulePageProps) {
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 onCancel={handleCancelMessage}
+                onEdit={setEditingScheduledMessage}
                 onSendNow={handleSendNow}
                 onDelete={handleDeleteMessage}
                 onClearSent={handleClearSent}
@@ -1638,6 +1645,15 @@ export function SchedulePage(props: SchedulePageProps) {
                 selectedMessageOption={selectedMessageOption}
               />
             </section>
+
+            {editingScheduledMessage && (
+              <ScheduledMessageEditModal
+                message={editingScheduledMessage}
+                isSaving={editingIds.has(editingScheduledMessage.id)}
+                onCancel={() => setEditingScheduledMessage(null)}
+                onSave={(edit) => handleEditScheduledMessage(editingScheduledMessage, edit)}
+              />
+            )}
 
           </>
         )}

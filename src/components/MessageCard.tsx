@@ -21,9 +21,11 @@ interface Props {
   message: ScheduledMessage;
   isLast: boolean;
   onCancel: (msg: ScheduledMessage) => void;
+  onEdit: (msg: ScheduledMessage) => void;
   onSendNow: (msg: ScheduledMessage) => void;
   onDelete: (msg: ScheduledMessage) => void;
   showDelete: boolean;
+  showEdit: boolean;
   showCancel: boolean;
   showSendNow: boolean;
   railColor?: string;
@@ -37,9 +39,11 @@ interface Props {
 export function MessageCard({
   message,
   isLast,
+  onEdit,
   onSendNow,
   onDelete,
   showDelete,
+  showEdit,
   showSendNow,
   railColor,
   isCanceling,
@@ -103,7 +107,7 @@ export function MessageCard({
 
         <div className="message-meta-row">
           <div className="message-meta">
-            {formatDateTime(message.when)}
+            {formatDateTime(message.status === 'sent' && message.sentAt ? message.sentAt : message.when)}
               {messageOption && (
                 <span className="message-history-option-icon" aria-label={t('schedule.selectedOption')}>
                   {messageOption === 'silent' ? '🔕' : '✨'}
@@ -149,6 +153,17 @@ export function MessageCard({
       </div>
 
       <div className="message-actions">
+        {showEdit && (
+          <button
+            className="msg-btn edit"
+            onClick={() => onEdit(message)}
+            title={t('schedule.edit')}
+            aria-label={t('schedule.edit')}
+          >
+            {t('schedule.edit')}
+          </button>
+        )}
+
         {showSendNow && (
           <button
             className="msg-btn send-now"

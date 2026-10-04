@@ -84,6 +84,8 @@ export function useScheduler({
   const [revealingId, setRevealingId] = useState<string | null>(null);
   const [cancelingIds, setCancelingIds] = useState<Set<string>>(new Set());
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
+  const [editingIds, setEditingIds] = useState<Set<string>>(new Set());
+  const editingLockRef = useRef(new Set<string>());
   const [publishingDraft, setPublishingDraft] = useState(false);
   const openPickerRef = useRef<'date' | 'time' | null>(null);
   const loadUpcoming = useCallback(() => loadUpcomingFromStorage(historyScope), [historyScope]);
@@ -612,6 +614,98 @@ export function useScheduler({
       });
   }
 
+  async function handleEditScheduledMessage(
+    msg: ScheduledMessage,
+    edit: { message: string; date: string; time: string },
+  ): Promise<boolean> {
+    if (editingLockRef.current.has(msg.id)) return false;
+
+    if (msg.telegramMessageId === undefined || msg.telegramMessageId === null) {
+      showNotification(t('schedule.telegramIdMissing'), 'error', t('schedule.errorTitle'));
+      return false;
+    }
+
+    if (!edit.message.trim()) {
+      showNotification(t('schedule.emptyMessage'), 'warning', t('schedule.emptyMessageTitle'));
+      return false;
+    }
+
+    const whenDate = new Date(`${edit.date}T${edit.time}`);
+    if (!edit.date || !edit.time || Number.isNaN(whenDate.getTime()) || whenDate.getTime() <= Date.now()) {
+      showNotification(t('schedule.futureTime'), 'warning', t('schedule.invalidDateTitle'));
+      return false;
+    }
+
+    const targetTimestamp = Math.floor(whenDate.getTime() / 1000);
+    const normalizedMessage = edit.message.normalize('NFC');
+    const messageTextChanged = normalizedMessage !== msg.text.normalize('NFC');
+    const currentTimestamp = new Date(msg.when).getTime();
+    const scheduleTimeChanged = !Number.isFinite(currentTimestamp)
+      || Math.floor(currentTimestamp / 1000) !== targetTimestamp;
+
+    if (!messageTextChanged && !scheduleTimeChanged) return true;
+
+    const duplicateExists = upcoming.some((item) =>
+      item.id !== msg.id
+      && item.chatId === msg.chatId
+      && item.text === normalizedMessage
+      && item.when === whenDate.toISOString()
+      && item.status !== 'sent',
+    );
+
+    if (duplicateExists) {
+      showNotification(t('schedule.duplicate'), 'warning', t('schedule.duplicateTitle'));
+      return false;
+    }
+
+    editingLockRef.current.add(msg.id);
+    setEditingIds((current) => new Set(current).add(msg.id));
+
+    try {
+      const result = await window.telegram.editScheduledMessage({
+        chatId: msg.chatId,
+        telegramMessageId: msg.telegramMessageId,
+        message: normalizedMessage,
+        targetTimestamp,
+        entities: messageTextChanged ? [] : msg.entities ?? [],
+      });
+
+      if (!result.success || result.confirmed !== true) {
+        throw new Error(result.error || t('schedule.editFailed'));
+      }
+
+      const updatedMessage: ScheduledMessage = {
+        ...msg,
+        text: normalizedMessage,
+        when: whenDate.toISOString(),
+        entities: messageTextChanged ? [] : msg.entities,
+        status: 'confirmed',
+      };
+
+      setUpcoming((current) => {
+        const updated = current.map((item) => item.id === msg.id ? updatedMessage : item);
+        saveUpcoming(updated);
+        return updated;
+      });
+      showNotification(t('schedule.editSuccess'), 'success', t('schedule.editSuccessTitle'));
+      return true;
+    } catch (error) {
+      showNotification(
+        error instanceof Error ? error.message : t('schedule.editFailed'),
+        'error',
+        t('schedule.editTitle'),
+      );
+      return false;
+    } finally {
+      editingLockRef.current.delete(msg.id);
+      setEditingIds((current) => {
+        const updated = new Set(current);
+        updated.delete(msg.id);
+        return updated;
+      });
+    }
+  }
+
   function handleSendNow(msg: ScheduledMessage) {
     if (sendingIds.has(msg.id)) return;
 
@@ -646,36 +740,32 @@ export function useScheduler({
           return next;
         });
 
-        if (result.success) {
-          const sentMsg: ScheduledMessage = {
-            ...msg,
-            status: 'sent',
-            sentAt: new Date().toISOString(),
-          };
-
-          setUpcoming((current) => {
-            const updated = current.filter((item) => item.id !== msg.id);
-            saveUpcoming(updated);
-            return updated;
-          });
-
-          setSent((current) => {
-            const updated = [sentMsg, ...current];
-            saveSent(updated);
-            return updated;
-          });
-
-          showNotification(t('schedule.messageSent'), 'success', t('schedule.sent'));
-
-          setRevealingId(msg.id);
-          window.setTimeout(() => setRevealingId(null), 1500);
-        } else {
-          showNotification(
-            result.error || t('schedule.sendFailed'),
-            'error',
-            t('schedule.errorTitle')
-          );
+        if (!result.success) {
+          throw new Error(result.error || t('schedule.sendFailed'));
         }
+
+        const sentMsg: ScheduledMessage = {
+          ...msg,
+          status: 'sent',
+          sentAt: new Date().toISOString(),
+        };
+
+        setUpcoming((current) => {
+          const updated = current.filter((item) => item.id !== msg.id);
+          saveUpcoming(updated);
+          return updated;
+        });
+
+        setSent((current) => {
+          const updated = [sentMsg, ...current];
+          saveSent(updated);
+          return updated;
+        });
+
+        showNotification(t('schedule.messageSent'), 'success', t('schedule.sent'));
+
+        setRevealingId(msg.id);
+        window.setTimeout(() => setRevealingId(null), 1500);
       })
       .catch((error) => {
         if (scheduleCancelled && msg.telegramMessageId !== undefined) {
@@ -772,6 +862,11 @@ export function useScheduler({
     if (!window.confirm(t('schedule.confirmDelete'))) return;
 
     if (msg.status !== 'sent') {
+      if (msg.telegramMessageId !== undefined && msg.telegramMessageId !== null) {
+        handleCancelMessage(msg);
+        return;
+      }
+
       setUpcoming((current) => {
         const updated = current.filter((item) => item.id !== msg.id);
         saveUpcoming(updated);
@@ -807,6 +902,21 @@ export function useScheduler({
         msg.telegramMessageId !== undefined &&
         msg.telegramMessageId !== null
     );
+    const cancelableIds = new Set(cancelable.map((msg) => msg.id));
+    const localPendingIds = new Set(
+      upcoming
+        .filter((msg) =>
+          msg.status === 'pending' &&
+          (msg.telegramMessageId === undefined || msg.telegramMessageId === null)
+        )
+        .map((msg) => msg.id),
+    );
+    const unconfirmedIds = upcoming
+      .filter((msg) =>
+        msg.status !== 'pending' &&
+        (msg.telegramMessageId === undefined || msg.telegramMessageId === null)
+      )
+      .map((msg) => msg.id);
 
     Promise.all(
       cancelable.map((msg) =>
@@ -820,12 +930,16 @@ export function useScheduler({
       )
     ).then((results) => {
       const failedIds = new Set(
-        results.filter((result) => !result.success).map((result) => result.message.id),
+        [
+          ...results.filter((result) => !result.success).map((result) => result.message.id),
+          ...unconfirmedIds,
+        ],
       );
-      const cancelableIds = new Set(cancelable.map((msg) => msg.id));
       setUpcoming((current) => {
         const remaining = current.filter(
-          (msg) => !cancelableIds.has(msg.id) || failedIds.has(msg.id),
+          (msg) =>
+            !localPendingIds.has(msg.id) &&
+            (!cancelableIds.has(msg.id) || failedIds.has(msg.id)),
         );
         saveUpcoming(remaining);
         return remaining;
@@ -861,10 +975,12 @@ export function useScheduler({
     setRevealingId,
     cancelingIds,
     sendingIds,
+    editingIds,
     publishingDraft,
     openPickerRef,
     handleSchedule,
     handleCancelMessage,
+    handleEditScheduledMessage,
     handleSendNow,
     handleSendDraftNow,
     handleDeleteMessage,

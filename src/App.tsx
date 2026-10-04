@@ -5,6 +5,7 @@ import { useChats } from '@/hooks/useChats';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useScheduler } from '@/hooks/useScheduler';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { useMessageDraft } from '@/hooks/useMessageDraft';
 import type { Chat } from '@/types';
 import { AppShell } from './AppShell';
 import { SchedulePage } from './pages/SchedulePage';
@@ -23,7 +24,6 @@ function getCurrentHashPath(): AppRoute {
   return '/';
 }
 
-const MESSAGE_DRAFT_STORAGE_PREFIX = 'xmsgi:message-draft:';
 const APP_THEME_STORAGE_KEY = 'xmsgi_theme';
 
 type AppTheme = 'dark' | 'light';
@@ -36,18 +36,12 @@ function getInitialTheme(): AppTheme {
   }
 }
 
-function getMessageDraftStorageKey(chatId: string) {
-  return `${MESSAGE_DRAFT_STORAGE_PREFIX}${chatId}`;
-}
-
 function App() {
   const [message, setMessage] = useState('');
   const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [route, setRoute] = useState<AppRoute>(getCurrentHashPath());
   const [scheduleActiveTab, setScheduleActiveTab] = useState<'upcoming' | 'sent'>('upcoming');
-  const restoringDraftRef = useRef(false);
-
   useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
@@ -124,50 +118,7 @@ function App() {
     };
   }, [setChats, setSelectedChat]);
 
-  useEffect(() => {
-    const chatId = selectedChat?.id;
-    restoringDraftRef.current = true;
-
-    if (!chatId) {
-      setMessage('');
-      return;
-    }
-
-    let draft = '';
-    try {
-      draft = window.localStorage.getItem(getMessageDraftStorageKey(chatId)) ?? '';
-    } catch {
-      draft = '';
-    }
-    setMessage(draft);
-  }, [selectedChat?.id]);
-
-  useEffect(() => {
-    if (restoringDraftRef.current) {
-      restoringDraftRef.current = false;
-      return;
-    }
-
-    const chatId = selectedChat?.id;
-    if (!chatId) {
-      return;
-    }
-
-    const storageKey = getMessageDraftStorageKey(chatId);
-    const timeoutId = window.setTimeout(() => {
-      try {
-        if (message) {
-          window.localStorage.setItem(storageKey, message);
-        } else {
-          window.localStorage.removeItem(storageKey);
-        }
-      } catch {
-        // Storage may be unavailable in restricted browser contexts.
-      }
-    }, 400);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [message, selectedChat?.id]);
+  useMessageDraft(selectedChat?.id, message, setMessage);
 
   const {
     assistantPrompt,
@@ -201,11 +152,13 @@ function App() {
     revealingId: personalRevealingId,
     cancelingIds: personalCancelingIds,
     sendingIds: personalSendingIds,
+    editingIds: personalEditingIds,
     dateEditedRef: personalDateEditedRef,
     timeEditedRef: personalTimeEditedRef,
     openPickerRef: personalOpenPickerRef,
     handleSchedule: handlePersonalSchedule,
     handleCancelMessage: handlePersonalCancelMessage,
+      handleEditScheduledMessage: handlePersonalEditScheduledMessage,
     handleSendNow: handlePersonalSendNow,
     handleDeleteMessage: handlePersonalDeleteMessage,
     handleClearSent: handlePersonalClearSent,
@@ -370,6 +323,8 @@ function App() {
           openPickerRef={personalOpenPickerRef}
           handleSchedule={handlePersonalSchedule}
           handleCancelMessage={handlePersonalCancelMessage}
+                    handleEditScheduledMessage={handlePersonalEditScheduledMessage}
+                    editingIds={personalEditingIds}
           handleSendNow={handlePersonalSendNow}
           handleDeleteMessage={handlePersonalDeleteMessage}
           handleClearSent={handlePersonalClearSent}

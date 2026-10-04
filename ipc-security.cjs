@@ -198,6 +198,23 @@ function validateCancelPayload(value) {
   return { chatId, telegramMessageId };
 }
 
+function validateScheduledMessageEditPayload(value) {
+  if (!isPlainObject(value)) {
+    invalidInput('scheduled message edit payload must be an object');
+  }
+
+  const { chatId, telegramMessageId } = validateCancelPayload(value);
+  const message = validateMessage(value.message);
+
+  return {
+    chatId,
+    telegramMessageId,
+    message,
+    targetTimestamp: validateTimestamp(value.targetTimestamp),
+    entities: validateFormattingEntities(value.entities, message.length)
+  };
+}
+
 function validateSendPayload(value) {
   if (!isPlainObject(value)) {
     invalidInput('send payload must be an object');
@@ -343,6 +360,7 @@ module.exports = {
   validateSchedulePayload,
   validateHistoryPayload,
   validateCancelPayload,
+  validateScheduledMessageEditPayload,
   validateSendPayload,
   validateLoginPayload,
   validateTelegramCredentialsPayload,

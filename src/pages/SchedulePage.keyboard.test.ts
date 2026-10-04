@@ -22,6 +22,11 @@ describe('SchedulePage keyboard date/time wiring', () => {
     expect(pageSource).toContain('moment-native-time-picker');
   });
 
+  it('labels the send-options menu button with its actual action', () => {
+    expect(pageSource).toContain('aria-label={t(\'composer.messageOptions\')}');
+    expect(pageSource).toContain('aria-haspopup="menu"');
+  });
+
   it('supports Space as a sequential date/time separator', () => {
     expect(pageSource).toContain("if (event.key !== 'Enter' && event.key !== ' ') return;");
   });

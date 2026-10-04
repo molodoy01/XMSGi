@@ -1,0 +1,176 @@
+.scheduled-edit-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 7, 8, 0.76);
+}
+
+.scheduled-edit-dialog {
+  width: min(100%, 500px);
+  max-height: min(90vh, 680px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid rgba(154, 168, 184, 0.24);
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--text);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.55);
+}
+
+.scheduled-edit-header,
+.scheduled-edit-actions,
+.scheduled-edit-datetime {
+  display: flex;
+  align-items: center;
+}
+
+.scheduled-edit-header {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.scheduled-edit-header h2 {
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.scheduled-edit-close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.scheduled-edit-close:hover:not(:disabled) {
+  background: rgba(154, 168, 184, 0.08);
+  color: var(--text);
+}
+
+.scheduled-edit-field {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.scheduled-edit-field textarea,
+.scheduled-edit-field input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(154, 168, 184, 0.24);
+  border-radius: 4px;
+  background: rgba(10, 11, 13, 0.6);
+  color: var(--text);
+  font: 14px/1.45 var(--sans);
+  text-transform: none;
+}
+
+.scheduled-edit-field textarea {
+  min-height: 132px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.scheduled-edit-field input {
+  min-height: 42px;
+  padding: 8px 10px;
+  color-scheme: inherit;
+}
+
+.scheduled-edit-field textarea:focus-visible,
+.scheduled-edit-field input:focus-visible {
+  border-color: rgba(154, 168, 184, 0.62);
+  outline: 2px solid rgba(154, 168, 184, 0.18);
+  outline-offset: 1px;
+}
+
+.scheduled-edit-datetime {
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.scheduled-edit-datetime > .scheduled-edit-field {
+  flex: 1;
+}
+
+.scheduled-edit-note {
+  margin-top: 16px;
+  color: var(--dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.scheduled-edit-actions {
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.scheduled-edit-cancel,
+.scheduled-edit-save {
+  min-height: 38px;
+  border: 0;
+  cursor: pointer;
+  font: 12px var(--mono);
+}
+
+.scheduled-edit-cancel {
+  padding: 0 8px;
+  background: transparent;
+  color: var(--dim);
+}
+
+.scheduled-edit-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(111, 155, 124, 0.58);
+  border-radius: 4px;
+  background: rgba(111, 155, 124, 0.12);
+  color: #b8d6c0;
+}
+
+.scheduled-edit-save:hover:not(:disabled) {
+  background: rgba(111, 155, 124, 0.2);
+  color: #e5f0e7;
+}
+
+.scheduled-edit-cancel:disabled,
+.scheduled-edit-save:disabled,
+.scheduled-edit-close:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+@media (max-width: 480px) {
+  .scheduled-edit-backdrop {
+    padding: 12px;
+  }
+
+  .scheduled-edit-dialog {
+    padding: 18px;
+  }
+
+  .scheduled-edit-datetime {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

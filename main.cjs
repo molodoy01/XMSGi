@@ -21,6 +21,7 @@ const {
   validateLoginPayload,
   validateTelegramCredentialsPayload,
   validateQuery,
+  validateScheduledMessageEditPayload,
   validateSchedulePayload,
   validateSendPayload,
   assertTrustedRenderer
@@ -250,6 +251,7 @@ const {
   resolveChat,
   sendMessage,
   scheduleMessage,
+  editScheduledMessage,
   cancelScheduledMessage,
   shutdownTelegram,
   setTelegramStatusCallback,
@@ -309,8 +311,8 @@ function createWindow() {
     icon: getWindowIconPath(),
     width: 1200,
     height: 800,
-    minWidth: 900,
-    minHeight: 600,
+    minWidth: 360,
+    minHeight: 480,
     backgroundColor: '#11110f',
     autoHideMenuBar: true,
 
@@ -902,6 +904,34 @@ ipcMain.handle('telegram-schedule', async (event, data) => {
   } catch (error) {
     console.error('Schedule error:', error?.code || error?.name || 'unknown');
 
+    return serializeTelegramErrorResponse(error);
+  }
+});
+
+ipcMain.handle('telegram-schedule-edit', async (event, data) => {
+  assertTrustedRenderer(
+    event,
+    mainWindow?.webContents,
+    pathToFileURL(path.join(__dirname, 'dist', 'index.html')).href
+  );
+  const validated = validateScheduledMessageEditPayload(data);
+
+  try {
+    const result = await editScheduledMessage(
+      validated.chatId,
+      validated.telegramMessageId,
+      validated.message,
+      validated.targetTimestamp,
+      validated.entities
+    );
+
+    return {
+      success: true,
+      telegramMessageId: result.telegramMessageId ?? result.id,
+      confirmed: result.confirmed === true
+    };
+  } catch (error) {
+    console.error('Scheduled-message edit error:', error?.code || error?.name || 'unknown');
     return serializeTelegramErrorResponse(error);
   }
 });

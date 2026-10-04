@@ -134,6 +134,18 @@ declare global {
         confirmed?: boolean;
         error?: string;
       }>;
+      editScheduledMessage: (data: {
+        chatId: string;
+        telegramMessageId: string | number;
+        message: string;
+        targetTimestamp: number;
+        entities?: TelegramFormattingEntity[];
+      }) => Promise<{
+        success: boolean;
+        telegramMessageId?: string | number;
+        confirmed?: boolean;
+        error?: string;
+      }>;
       getChatHistory: (data: { chatId: string; limit?: number }) => Promise<{
         success: boolean;
         history?: {

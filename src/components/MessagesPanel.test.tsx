@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { MessagesPanel } from './MessagesPanel';
 import type { ScheduledMessage } from '@/types';
 import { LocaleProvider } from '@/lib/i18n';
+import { formatDateTime } from '@/lib/utils';
 
 const upcoming: ScheduledMessage[] = [
   {
@@ -25,7 +26,7 @@ const sent: ScheduledMessage[] = [
     when: '2026-09-19T10:00:00.000Z',
     createdAt: '2026-09-19T09:00:00.000Z',
     status: 'sent',
-    sentAt: '2026-09-19T10:00:00.000Z',
+    sentAt: '2026-09-21T14:30:00.000Z',
   },
 ];
 
@@ -41,6 +42,7 @@ describe('MessagesPanel', () => {
         activeTab="upcoming"
         onTabChange={vi.fn()}
         onCancel={vi.fn()}
+        onEdit={vi.fn()}
         onSendNow={vi.fn()}
         onDelete={vi.fn()}
         onClearSent={vi.fn()}
@@ -69,6 +71,7 @@ describe('MessagesPanel', () => {
         activeTab="upcoming"
         onTabChange={onTabChange}
         onCancel={vi.fn()}
+        onEdit={vi.fn()}
         onSendNow={vi.fn()}
         onDelete={vi.fn()}
         onClearSent={vi.fn()}
@@ -96,6 +99,7 @@ describe('MessagesPanel', () => {
         activeTab="sent"
         onTabChange={vi.fn()}
         onCancel={vi.fn()}
+        onEdit={vi.fn()}
         onSendNow={vi.fn()}
         onDelete={vi.fn()}
         onClearSent={onClearSent}
@@ -111,5 +115,60 @@ describe('MessagesPanel', () => {
 
     fireEvent.click(clearButton);
     expect(onClearSent).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the actual sent time in history instead of the scheduled time', () => {
+    render(
+      <LocaleProvider>
+        <MessagesPanel
+          upcoming={upcoming}
+          sent={sent}
+          assistantText=""
+          revealingId={null}
+          activeTab="sent"
+          onTabChange={vi.fn()}
+          onCancel={vi.fn()}
+          onEdit={vi.fn()}
+          onSendNow={vi.fn()}
+          onDelete={vi.fn()}
+          onClearSent={vi.fn()}
+          onClearAll={vi.fn()}
+          cancelingIds={new Set()}
+          sendingIds={new Set()}
+        />
+      </LocaleProvider>
+    );
+
+    expect(screen.getByText(formatDateTime(sent[0].sentAt!))).toBeInTheDocument();
+    expect(screen.queryByText(formatDateTime(sent[0].when))).not.toBeInTheDocument();
+  });
+
+  it('offers an edit action for a scheduled message with a Telegram ID', () => {
+    const onEdit = vi.fn();
+    const editableMessage = { ...upcoming[0], telegramMessageId: 456 };
+    render(
+      <LocaleProvider>
+        <MessagesPanel
+          upcoming={[editableMessage]}
+          sent={sent}
+          assistantText=""
+          revealingId={null}
+          activeTab="upcoming"
+          onTabChange={vi.fn()}
+          onCancel={vi.fn()}
+          onEdit={onEdit}
+          onSendNow={vi.fn()}
+          onDelete={vi.fn()}
+          onClearSent={vi.fn()}
+          onClearAll={vi.fn()}
+          cancelingIds={new Set()}
+          sendingIds={new Set()}
+        />
+      </LocaleProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+
+    expect(onEdit).toHaveBeenCalledWith(editableMessage);
   });
 });

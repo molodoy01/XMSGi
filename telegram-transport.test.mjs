@@ -62,6 +62,21 @@ describe('MTProto inline keyboard transport construction', () => {
     expect(request.replyMarkup.rows[0].buttons[0].type.url).toBe('https://example.com');
   });
 
+  it('supports editing a scheduled message in place without replacing its media or keyboard', () => {
+    const request = new Api.messages.EditMessage({
+      peer: new Api.InputPeerSelf(),
+      id: 42,
+      message: 'Updated text',
+      scheduleDate: 1791635400,
+    });
+
+    expect(request.id).toBe(42);
+    expect(request.message).toBe('Updated text');
+    expect(request.scheduleDate).toBe(1791635400);
+    expect(request.media).toBeUndefined();
+    expect(request.replyMarkup).toBeUndefined();
+  });
+
   it('places the prepared markup in SendMedia.replyMarkup', () => {
     const replyMarkup = prepareInlineKeyboard({
       inline_keyboard: [[{ text: 'Click', callback_data: 'test_callback' }]],

@@ -6,6 +6,7 @@ import security from './ipc-security.cjs';
 
 const {
   validateCancelPayload,
+  validateScheduledMessageEditPayload,
   validateChatId,
   validateLoginPayload,
   validateTelegramCredentialsPayload,
@@ -90,6 +91,34 @@ describe('IPC security validation', () => {
     expect(() => validateSchedulePayload({
       chatId: 'me',
       message: 'Reminder',
+      targetTimestamp: 'tomorrow'
+    })).toThrow('targetTimestamp');
+  });
+
+  it('validates scheduled message edits without accepting media or option changes', () => {
+    expect(validateScheduledMessageEditPayload({
+      chatId: 'me',
+      telegramMessageId: '12345',
+      message: 'Updated reminder',
+      targetTimestamp: 1791635400,
+      entities: [{ type: 'bold', offset: 0, length: 7 }]
+    })).toEqual({
+      chatId: 'me',
+      telegramMessageId: '12345',
+      message: 'Updated reminder',
+      targetTimestamp: 1791635400,
+      entities: [{ type: 'bold', offset: 0, length: 7 }]
+    });
+    expect(() => validateScheduledMessageEditPayload({
+      chatId: 'me',
+      telegramMessageId: 'bad',
+      message: 'Updated reminder',
+      targetTimestamp: 1791635400
+    })).toThrow('telegramMessageId');
+    expect(() => validateScheduledMessageEditPayload({
+      chatId: 'me',
+      telegramMessageId: '12345',
+      message: 'Updated reminder',
       targetTimestamp: 'tomorrow'
     })).toThrow('targetTimestamp');
   });

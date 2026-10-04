@@ -115,7 +115,7 @@ body:has(.auth-panel) {
   width: 100vw;
   height: 1px;
   background: rgba(154, 168, 184, 0.12);
-  transform: translateX(calc(-50% + 14px));
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
@@ -6808,6 +6808,39 @@ textarea:active,
 :root[data-theme="light"] .message-clear-button:hover {
   background: rgba(71, 125, 119, 0.12);
   color: #193d31;
+}
+
+@media (max-width: 700px) {
+  .chat-field .chat-picker-current-avatar {
+    left: 16px;
+  }
+
+  .chat-field .chat-picker-current-copy {
+    padding-left: 60px;
+  }
+
+  .chat-field .chat-picker-current,
+  .chat-field .chat-picker-current:focus-visible,
+  .chat-field .chat-picker.is-open .chat-picker-current {
+    background-position: 60px 100%;
+    background-size: calc(100% - 44px) 1px;
+  }
+
+  .chat-field .chat-picker-current:hover {
+    background-position: 60px 100%;
+    background-size: calc(100% - 44px) 1px;
+  }
+
+  .message-composer-timezone {
+    right: 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar .brand {
+    left: 16px;
+  }
 }
 
 :root[data-theme="light"] .chat-picker-menu,

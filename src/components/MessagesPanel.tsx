@@ -11,6 +11,7 @@ interface Props {
   activeTab: 'upcoming' | 'sent';
   onTabChange: (tab: 'upcoming' | 'sent') => void;
   onCancel: (msg: ScheduledMessage) => void;
+  onEdit: (msg: ScheduledMessage) => void;
   onSendNow: (msg: ScheduledMessage) => void;
   onDelete: (msg: ScheduledMessage) => void;
   onClearSent: () => void;
@@ -30,6 +31,7 @@ export function MessagesPanel({
   activeTab,
   onTabChange,
   onCancel,
+  onEdit,
   onSendNow,
   onDelete,
   onClearSent,
@@ -343,8 +345,10 @@ export function MessagesPanel({
                   isLast={i === recentUpcoming.length - 1}
                   isRevealing={revealingId === msg.id}
                   onCancel={onCancel}
+                  onEdit={onEdit}
                   onSendNow={onSendNow}
                   onDelete={onDelete}
+                  showEdit={(msg.status === 'scheduled' || msg.status === 'confirmed') && msg.telegramMessageId !== undefined && msg.telegramMessageId !== null && !cancelingIds.has(msg.id) && !sendingIds.has(msg.id)}
                   showCancel={(msg.status === 'scheduled' || msg.status === 'confirmed') && !cancelingIds.has(msg.id)}
                   showSendNow={(msg.status === 'scheduled' || msg.status === 'confirmed') && !sendingIds.has(msg.id)}
                   showDelete={true}
@@ -377,8 +381,10 @@ export function MessagesPanel({
                     isLast={i === olderUpcoming.length - 1}
                     isRevealing={revealingId === msg.id}
                     onCancel={onCancel}
+                    onEdit={onEdit}
                     onSendNow={onSendNow}
                     onDelete={onDelete}
+                    showEdit={(msg.status === 'scheduled' || msg.status === 'confirmed') && msg.telegramMessageId !== undefined && msg.telegramMessageId !== null && !cancelingIds.has(msg.id) && !sendingIds.has(msg.id)}
                     showCancel={(msg.status === 'scheduled' || msg.status === 'confirmed') && !cancelingIds.has(msg.id)}
                     showSendNow={(msg.status === 'scheduled' || msg.status === 'confirmed') && !sendingIds.has(msg.id)}
                     showDelete={true}
@@ -413,11 +419,13 @@ export function MessagesPanel({
                   message={msg}
                   isLast={i === recentSent.length - 1}
                   onCancel={onCancel}
+                  onEdit={onEdit}
                   onSendNow={onSendNow}
                   onDelete={onDelete}
                   showCancel={false}
                   showSendNow={false}
                   showDelete={true}
+                  showEdit={false}
                   railColor="#6f9b7c"
                   isRevealing={revealingId === msg.id}
                   selectedMessageOption={selectedMessageOption}
@@ -445,11 +453,13 @@ export function MessagesPanel({
                     message={msg}
                     isLast={i === olderSent.length - 1}
                     onCancel={onCancel}
+                    onEdit={onEdit}
                     onSendNow={onSendNow}
                     onDelete={onDelete}
                     showCancel={false}
                     showSendNow={false}
                     showDelete={true}
+                    showEdit={false}
                     railColor="#6f9b7c"
                     isRevealing={revealingId === msg.id}
                     selectedMessageOption={selectedMessageOption}

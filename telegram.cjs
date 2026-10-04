@@ -2556,6 +2556,41 @@ function cancelScheduledMessage(chatId, messageId, message, date, time) {
   ));
 }
 
+async function editScheduledMessageInternal(chatId, messageId, message, targetTimestamp, entities = []) {
+  if (!client) {
+    await connectTelegram();
+  }
+
+  const target = chatId === 'me' ? 'me' : chatId;
+  const clientAtStart = client;
+  const normalizedMessage = typeof message === 'string'
+    ? message.normalize('NFC')
+    : String(message ?? '');
+  const telegramMessageId = Number(messageId);
+
+  await withTelegramInvokeDiagnostics(clientAtStart, 'edit-schedule', () => telegramRequest(() => withTimeout(
+    clientAtStart.editMessage(target, telegramMessageId, {
+      text: normalizedMessage,
+      formattingEntities: toTelegramFormattingEntities(entities),
+      schedule: targetTimestamp,
+    }),
+    REQUEST_TIMEOUT,
+    'Editing Telegram scheduled message'
+  )));
+
+  return { id: messageId, telegramMessageId: messageId, confirmed: true };
+}
+
+function editScheduledMessage(chatId, messageId, message, targetTimestamp, entities) {
+  return trackTelegramOperation('edit-schedule', () => editScheduledMessageInternal(
+    chatId,
+    messageId,
+    message,
+    targetTimestamp,
+    entities
+  ));
+}
+
 // =========================================================
 // EXPORTS
 // =========================================================
@@ -2580,6 +2615,7 @@ function cancelScheduledMessage(chatId, messageId, message, date, time) {
     resolveChat,
     sendMessage,
     scheduleMessage,
+    editScheduledMessage,
     cancelScheduledMessage,
     shutdownTelegram,
     setTelegramStatusCallback,
@@ -2615,6 +2651,7 @@ module.exports = {
   resolveChat: (...args) => defaultCore.resolveChat(...args),
   sendMessage: (...args) => defaultCore.sendMessage(...args),
   scheduleMessage: (...args) => defaultCore.scheduleMessage(...args),
+  editScheduledMessage: (...args) => defaultCore.editScheduledMessage(...args),
   cancelScheduledMessage: (...args) => defaultCore.cancelScheduledMessage(...args),
   shutdownTelegram: (...args) => defaultCore.shutdownTelegram(...args),
   setTelegramStatusCallback: (...args) => defaultCore.setTelegramStatusCallback(...args),

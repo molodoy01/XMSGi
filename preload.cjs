@@ -67,6 +67,9 @@ contextBridge.exposeInMainWorld('telegram', {
   schedule: (data) =>
     ipcRenderer.invoke('telegram-schedule', data),
 
+  editScheduledMessage: (data) =>
+    ipcRenderer.invoke('telegram-schedule-edit', data),
+
   getChatHistory: (data) =>
     ipcRenderer.invoke('telegram-chat-history', data),
 
