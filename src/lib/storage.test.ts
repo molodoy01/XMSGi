@@ -9,7 +9,7 @@ import {
 } from './storage';
 import type { ScheduledMessage } from '@/types';
 
-const UPCOMING_STORAGE_KEY = 'awaitmsg_upcoming';
+const UPCOMING_STORAGE_KEY = 'xmsgi_upcoming';
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -140,14 +140,14 @@ describe('Chat storage migration', () => {
     saveHiddenChats(['-1004431408545', 'private-1']);
 
     expect(loadHiddenChats()).toEqual(['-1004431408545', 'private-1']);
-    expect(storage.getItem('awaitmsg_hidden_chats_v2')).toBe(
+    expect(storage.getItem('xmsgi_hidden_chats_v2')).toBe(
       JSON.stringify(['-1004431408545', 'private-1']),
     );
   });
 
   it('migrates legacy chats to persistent storage once', async () => {
     const channel = { id: '-1004431408545', name: 'Новости топ 5 дня', type: 'channel' as const };
-    storage.setItem('awaitmsg_chats', JSON.stringify([channel]));
+    storage.setItem('xmsgi_chats', JSON.stringify([channel]));
     const saveSavedChats = vi.fn().mockResolvedValue({ success: true });
     vi.stubGlobal('telegram', { loadSavedChats: vi.fn().mockResolvedValue([]), saveSavedChats });
 

@@ -3,7 +3,8 @@ import { createContext, createElement, useContext, useMemo, useState, type Props
 export type Locale = 'en' | 'ru';
 export type TranslationKey = keyof typeof translations.en;
 
-const LOCALE_STORAGE_KEY = 'awaitmsg_locale';
+const LOCALE_STORAGE_KEY = 'xmsgi_locale';
+const LEGACY_LOCALE_STORAGE_KEY = 'await' + 'msg_locale';
 
 const russianEditorialOverrides: Partial<Record<string, string>> = {
   'auth.continueTelegram': 'Продолжить через Telegram',
@@ -310,8 +311,14 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 function getInitialLocale(): Locale {
   try {
-    const saved = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    if (saved === 'en' || saved === 'ru') return saved;
+    const saved = window.localStorage.getItem(LOCALE_STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_LOCALE_STORAGE_KEY);
+    if (saved === 'en' || saved === 'ru') {
+      if (saved === window.localStorage.getItem(LEGACY_LOCALE_STORAGE_KEY) && window.localStorage.getItem(LOCALE_STORAGE_KEY) === null) {
+        window.localStorage.setItem(LOCALE_STORAGE_KEY, saved);
+        window.localStorage.removeItem(LEGACY_LOCALE_STORAGE_KEY);
+      }
+      return saved;
+    }
     return 'en';
   } catch {
     return 'en';

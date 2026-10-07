@@ -81,7 +81,7 @@ describe('InlineKeyboardBuilder', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     expect(screen.getByText('Open')).toBeInTheDocument();
-    expect(window.localStorage.getItem('awaitmsg-inline-button-presets')).toContain('Inline set 1');
+    expect(window.localStorage.getItem('xmsgi-inline-button-presets')).toContain('Inline set 1');
   });
 
   it('trims an oversized incoming row to Telegram limits', () => {

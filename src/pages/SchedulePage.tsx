@@ -1095,16 +1095,12 @@ export function SchedulePage(props: SchedulePageProps) {
                 <ChatPicker
                   chats={chats}
                   selectedChat={selectedChat}
+                  canSend={selectedChatPermissions?.canSend ?? true}
                   onSelect={setSelectedChat}
                   onAddChat={handleAddChat}
                   onRemoveChat={handleRemoveChat}
                   onError={(msg, title) => showNotification(msg, 'error', title)}
                 />
-                {selectedChatPermissions?.canSend === false && (
-                  <p className="chat-permission-warning" role="status">
-                    {t('chat.cannotSend')}
-                  </p>
-                )}
               </div>
 
               <div className="field message-field">
@@ -1131,6 +1127,11 @@ export function SchedulePage(props: SchedulePageProps) {
                     disabled={selectedChatPermissions?.canSend === false}
                     title={selectedChatPermissions?.canSend === false ? t('chat.cannotSendReason') : undefined}
                     onChange={(event) => handleComposerMessageChange(limitMessageText(event.target.value, messageMaxLength))}
+                    onKeyDown={(event) => {
+                      if ((event.ctrlKey || event.metaKey) && ['c', 'v', 'x', 'a', 'z', 'y', 's'].includes(event.key.toLowerCase())) {
+                        return;
+                      }
+                    }}
                     onPaste={(event) => {
                       event.preventDefault();
                       const textarea = event.currentTarget;
@@ -1157,7 +1158,7 @@ export function SchedulePage(props: SchedulePageProps) {
                       title={t('composer.addAttachment')}
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Paperclip size={17} strokeWidth={1.8} aria-hidden="true" />
+                      <Paperclip size={22} strokeWidth={1.8} aria-hidden="true" />
                     </button>
                     <button
                       type="button"
@@ -1166,7 +1167,7 @@ export function SchedulePage(props: SchedulePageProps) {
                       title="Emoji"
                       onClick={handleEmojiPickerToggle}
                     >
-                      <Smile className="message-attachment-smile" size={17} strokeWidth={1.8} aria-hidden="true" />
+                      <Smile className="message-attachment-smile" size={24} strokeWidth={1.8} aria-hidden="true" />
                     </button>
                     {(emojiPickerOpen || emojiPickerClosing) && (
                       <div className={`message-emoji-picker-shell ${emojiPickerClosing ? 'is-closing' : ''}`} aria-hidden={emojiPickerClosing}>
@@ -1348,7 +1349,7 @@ export function SchedulePage(props: SchedulePageProps) {
                         if (willOpen) setEffectMenuOpen(false);
                       }}
                     >
-                      <Menu size={17} strokeWidth={1.8} aria-hidden="true" />
+                      <Menu size={24} strokeWidth={1.8} aria-hidden="true" />
                     </button>
 
                     {messageOptionsOpen && (

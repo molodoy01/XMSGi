@@ -2,7 +2,7 @@
   width: 100%;
   min-height: calc(100vh - 64px);
   margin: 0;
-  padding: 28px 0 48px;
+  padding: 28px 0 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -27,8 +27,9 @@
 
 .auth-hero-copy {
   position: fixed;
-  top: 70px;
-  left: 70px;
+  top: 100px;
+  left: 40px;
+  right: 40px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

@@ -140,7 +140,7 @@ describe('scheduled message removal', () => {
     await waitFor(() => {
       expect(screen.queryByText(scheduledMessage.text)).not.toBeInTheDocument();
     });
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]')).toEqual([]);
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]')).toEqual([]);
   });
 
   it('keeps the record after cancel failure and allows retry', async () => {
@@ -163,7 +163,7 @@ describe('scheduled message removal', () => {
       );
     });
     expect(screen.getByText(scheduledMessage.text)).toBeInTheDocument();
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]'))
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]'))
       .toEqual([scheduledMessage]);
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
@@ -237,10 +237,10 @@ describe('send now cancellation recovery', () => {
       undefined,
     );
     expect(screen.getByText(scheduledMessage.text)).toBeInTheDocument();
-    const [storedMessage] = JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]');
+    const [storedMessage] = JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]');
     expect(storedMessage).toMatchObject({ id: scheduledMessage.id, status: 'pending' });
     expect(storedMessage).not.toHaveProperty('telegramMessageId');
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_sent') || '[]')).toEqual([]);
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_sent') || '[]')).toEqual([]);
   });
 });
 
@@ -282,7 +282,7 @@ describe('clear all pending messages', () => {
       telegramMessageId: scheduledMessage.telegramMessageId,
     });
     expect(cancel).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]')).toEqual([]);
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]')).toEqual([]);
     expect(showNotification).toHaveBeenCalledWith(expect.any(String), 'success', expect.any(String));
   });
 
@@ -307,7 +307,7 @@ describe('clear all pending messages', () => {
       expect(showNotification).toHaveBeenCalledWith(expect.any(String), 'warning', expect.any(String));
     });
     expect(screen.getByText(scheduledMessage.text)).toBeInTheDocument();
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]'))
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]'))
       .toEqual([scheduledMessage]);
   });
 
@@ -331,7 +331,7 @@ describe('clear all pending messages', () => {
       expect(showNotification).toHaveBeenCalledWith(expect.any(String), 'warning', expect.any(String));
     });
     expect(screen.getByText(inFlightMessage.text)).toBeInTheDocument();
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]'))
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]'))
       .toEqual([inFlightMessage]);
     expect(cancel).not.toHaveBeenCalled();
   });
@@ -383,7 +383,7 @@ describe('scheduled message editing', () => {
       'success',
       'Updated',
     );
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]'))
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]'))
       .toMatchObject([{ id: scheduledMessage.id, text: 'Updated schedule text' }]);
   });
 
@@ -408,7 +408,7 @@ describe('scheduled message editing', () => {
 
     expect(updated).toBe(false);
     expect(result.current.upcoming).toEqual([scheduledMessage]);
-    expect(JSON.parse(window.localStorage.getItem('awaitmsg_upcoming') || '[]'))
+    expect(JSON.parse(window.localStorage.getItem('xmsgi_upcoming') || '[]'))
       .toEqual([scheduledMessage]);
     expect(showNotification).toHaveBeenCalledWith('Telegram edit failed', 'error', expect.any(String));
   });

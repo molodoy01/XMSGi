@@ -34,4 +34,9 @@ describe('SchedulePage keyboard date/time wiring', () => {
   it('positions the time menu above the clock trigger', () => {
     expect(pageSource).toContain('trigger.top - menu.offsetHeight - 6');
   });
+
+  it('allows native clipboard shortcuts in the composer textarea', () => {
+    expect(pageSource).toContain("'c', 'v', 'x', 'a', 'z'");
+    expect(pageSource).toContain('(event.ctrlKey || event.metaKey)');
+  });
 });

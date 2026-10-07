@@ -120,6 +120,25 @@ describe('useChats persistence merge', () => {
     expect(result.current.chats[0].id).toBe(savedChannel.id);
   });
 
+  it('uses cached chat permissions immediately from saved chat data', async () => {
+    const cachedChat: Chat = {
+      ...savedChannel,
+      permissions: { canView: true, canSend: false, canSchedule: false },
+    };
+    saveChats([cachedChat]);
+
+    const { result } = renderHook(() => useChats({ connected: false }));
+
+    await waitFor(() => {
+      expect(result.current.selectedChat?.id).toBe(cachedChat.id);
+      expect(result.current.selectedChatPermissions).toMatchObject({
+        canView: true,
+        canSend: false,
+        canSchedule: false,
+      });
+    });
+  });
+
   it('preserves a chat added while startup sync is still loading', async () => {
     const startupChats = createDeferred<{ success: boolean; chats: Chat[] }>();
     const persistedSnapshots: Chat[][] = [];

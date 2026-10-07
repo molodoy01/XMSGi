@@ -2043,11 +2043,11 @@ textarea {
 }
 
 .message-field-meta .message-attachment-button {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: rgba(220, 228, 236, 0.88);
   order: 1;
@@ -2063,15 +2063,15 @@ textarea {
 
 .message-field-meta .message-attachment-smile-button {
   order: 2;
-  width: 20px;
-  height: 20px;
-  margin-left: 4px;
+  width: 30px;
+  height: 30px;
+  margin-left: 6px;
   padding: 0;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: rgba(220, 228, 236, 0.88);
-  transform: translateX(8px);
+  transform: translateX(0);
   transition: color 0.18s ease, opacity 0.18s ease, background 0.18s ease;
   display: inline-flex;
   align-items: center;
@@ -2080,8 +2080,8 @@ textarea {
 
 .message-field-meta .message-attachment-smile {
   display: inline-block;
-  width: 17px;
-  height: 17px;
+  width: 24px;
+  height: 24px;
   color: inherit;
 }
 
@@ -2371,10 +2371,10 @@ textarea {
   position: absolute;
   right: 20px;
   bottom: -18px;
-  color: rgba(183, 194, 204, 0.5);
+  color: rgba(220, 228, 236, 0.82);
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  letter-spacing: 0.1em;
   line-height: 1;
   white-space: nowrap;
   transform: translateX(87px);
@@ -3272,7 +3272,7 @@ textarea:focus-visible {
 }
 
 .chat-picker-current-copy {
-  display: block;
+  display: flex;
   min-width: 0;
   flex: 1;
   overflow: hidden;
@@ -3281,11 +3281,32 @@ textarea:focus-visible {
 }
 
 .chat-picker-current-name {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-left: 0;
+}
+
+.chat-picker-current-name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-picker-warning {
+  flex-shrink: 0;
+  color: #f7b94d;
+  font-family: var(--mono);
+  font-size: clamp(12px, 0.9vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .chat-field .chat-picker-current {
@@ -3337,7 +3358,7 @@ textarea:focus-visible {
 }
 
 .chat-field .chat-picker-current-copy {
-  display: block;
+  display: flex;
   min-width: 0;
   flex: 1;
   overflow: hidden;
@@ -3346,12 +3367,33 @@ textarea:focus-visible {
 }
 
 .chat-field .chat-picker-current-name {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-left: 0;
   margin-left: 0;
+}
+
+.chat-field .chat-picker-current-name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-field .chat-picker-warning {
+  flex-shrink: 0;
+  color: #f7b94d;
+  font-family: var(--mono);
+  font-size: clamp(12px, 0.9vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .chat-field > label {
@@ -4312,13 +4354,13 @@ textarea:focus-visible {
 .message-send-button,
 .message-settings-button {
   display: inline-grid;
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   margin: 0;
   padding: 0;
   place-items: center;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: rgba(206, 216, 228, 0.78);
   cursor: pointer;
@@ -4338,7 +4380,7 @@ textarea:focus-visible {
 
 .message-attachments {
   position: absolute;
-  top: 0;
+  top: 6px;
   right: 140px;
   left: 28px;
   display: flex;
@@ -6690,6 +6732,14 @@ textarea:active,
   background-image: linear-gradient(rgba(55, 81, 86, 0.22), rgba(55, 81, 86, 0.22));
 }
 
+:root[data-theme="light"] .chat-picker-warning,
+:root[data-theme="light"] .chat-field .chat-picker-warning {
+  color: #c67d00;
+  font-size: clamp(12px, 0.9vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
 :root[data-theme="light"] .chat-field .chat-picker-current::before,
 :root[data-theme="light"] .chat-field .chat-picker-current::after {
   color: var(--signal);
@@ -6792,7 +6842,7 @@ textarea:active,
 :root[data-theme="light"] .message-field-meta,
 :root[data-theme="light"] .message-field-meta > span,
 :root[data-theme="light"] .message-composer-timezone {
-  color: #3d5148;
+  color: #2d5d52;
 }
 
 :root[data-theme="light"] .message-field-meta .message-attachment-button,

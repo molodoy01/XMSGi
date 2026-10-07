@@ -159,6 +159,10 @@ export function RichTextEditor({ text, entities, onChange, inputRef, stageConten
             saveSelection();
           }}
           onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && ['c', 'v', 'x', 'a', 'z', 'y', 's'].includes(event.key.toLowerCase())) {
+              return;
+            }
+
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
               event.preventDefault();
               saveSelection();

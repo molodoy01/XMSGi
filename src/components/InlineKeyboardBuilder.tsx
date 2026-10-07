@@ -16,7 +16,7 @@ type InlineKeyboardPreset = {
   rows: InlineButtonRow[];
 };
 
-const PRESETS_STORAGE_KEY = 'awaitmsg-inline-button-presets';
+const PRESETS_STORAGE_KEY = 'xmsgi-inline-button-presets';
 
 function loadPresets(): InlineKeyboardPreset[] {
   try {

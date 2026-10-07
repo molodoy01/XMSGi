@@ -12,6 +12,72 @@ export type TelegramAuthOptions = {
   setSelectedChat: Dispatch<SetStateAction<Chat | null>>;
 };
 
+function ensureDevTelegramStub() {
+  if (typeof window === 'undefined') return;
+
+  const existing = window.telegram;
+  if (existing) {
+    return;
+  }
+
+  const devTelegram: any = {
+    getAuthState: async () => ({
+      success: true,
+      authState: {
+        connected: true,
+        signedOut: false,
+        hasSession: true,
+        userName: 'dev-user',
+      },
+    }),
+    login: async () => ({
+      success: true,
+      authState: {
+        connected: true,
+        signedOut: false,
+        hasSession: true,
+        userName: 'dev-user',
+      },
+    }),
+    connect: async () => ({ success: true }),
+    onStatus: () => undefined,
+    getChats: async () => ({ success: true, chats: [] }),
+    getChatAvatar: async () => ({ success: false }),
+    getChatPermissions: async () => ({ success: true, permissions: null }),
+    signOutKeepSession: async () => ({ success: true, authState: { connected: false, signedOut: true, hasSession: false, userName: '' } }),
+    welcomeBack: async () => ({ success: true, authState: { connected: true, signedOut: false, hasSession: true, userName: 'dev-user' } }),
+    forgetAccount: async () => ({ success: true, authState: { connected: false, signedOut: false, hasSession: false, userName: '' } }),
+    verifyMessageSent: async () => ({ success: true, sent: false }),
+    schedule: async () => ({ success: true }),
+    onMessageSent: () => () => undefined,
+    editScheduledMessage: async () => ({ success: true }),
+    cancel: async () => ({ success: true }),
+    send: async () => ({ success: true, messageId: 1 }),
+    getAvailableEffects: async () => ({ success: true, effects: [] }),
+    getFilePath: () => '',
+    loadSavedChats: async () => [],
+    saveSavedChats: async () => undefined,
+  };
+
+  window.telegram = devTelegram;
+}
+
+export function shouldBypassTelegramAuth() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  try {
+    const shouldSkip = new URLSearchParams(window.location.search).get('devSkipAuth') === '1';
+    if (shouldSkip) {
+      ensureDevTelegramStub();
+    }
+    return shouldSkip;
+  } catch {
+    return false;
+  }
+}
+
 export function useTelegramAuth({
   showNotification,
   closeNotification,
@@ -34,8 +100,24 @@ export function useTelegramAuth({
   const [authError, setAuthError] = useState('');
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
   const lastFloodWaitKeyRef = useRef<string | null>(null);
+  const telegramBridgeUnavailableMessage = 'This app requires the Telegram desktop bridge. Open it in Electron instead of a browser.';
 
   const handleTelegramAuth = useCallback(async () => {
+    if (shouldBypassTelegramAuth()) {
+      setConnecting(false);
+      setConnected(true);
+      setSignedOut(false);
+      setShowAuthForm(false);
+      setConnectionResolved(true);
+      setAuthError('');
+      return;
+    }
+
+    if (typeof window.telegram?.login !== 'function') {
+      setAuthError(telegramBridgeUnavailableMessage);
+      return;
+    }
+
     setAuthBusy(true);
     setAuthError('');
 
@@ -90,6 +172,11 @@ export function useTelegramAuth({
   }, [authStep, phoneCode, phoneNumber, twoFactorPassword, t]);
 
   const handleDisconnect = useCallback(async () => {
+    if (typeof window.telegram?.signOutKeepSession !== 'function') {
+      setAuthError(telegramBridgeUnavailableMessage);
+      return;
+    }
+
     setAuthBusy(true);
     setAuthError('');
 
@@ -127,6 +214,11 @@ export function useTelegramAuth({
   const handleWelcomeBack = useCallback(async () => {
     if (authBusy) return;
 
+    if (typeof window.telegram?.welcomeBack !== 'function') {
+      setAuthError(telegramBridgeUnavailableMessage);
+      return;
+    }
+
     setAuthBusy(true);
     setConnecting(true);
     setAuthError('');
@@ -158,6 +250,11 @@ export function useTelegramAuth({
 
   const handleForgetAccount = useCallback(async () => {
     if (authBusy) return;
+
+    if (typeof window.telegram?.forgetAccount !== 'function') {
+      setAuthError(telegramBridgeUnavailableMessage);
+      return;
+    }
 
     setAuthBusy(true);
     setAuthError('');
@@ -195,6 +292,24 @@ export function useTelegramAuth({
 
   useEffect(() => {
     const loadAuth = async () => {
+      if (shouldBypassTelegramAuth()) {
+        setConnecting(false);
+        setConnected(true);
+        setSignedOut(false);
+        setShowAuthForm(false);
+        setConnectionResolved(true);
+        setAuthError('');
+        return;
+      }
+
+      if (typeof window.telegram?.getAuthState !== 'function') {
+        setConnecting(false);
+        setConnected(false);
+        setConnectionResolved(true);
+        setAuthError(telegramBridgeUnavailableMessage);
+        return;
+      }
+
       window.telegram.getAuthState()
         .then((authResult) => {
           if (!authResult.success || !authResult.authState) {

@@ -44,9 +44,11 @@ export function getTimezoneLabel(): string {
   const minutes = absMinutes % 60;
   const offset = `GMT${sign}${hours}${minutes ? `:${String(minutes).padStart(2, '0')}` : ''}`;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-  const country = timezone === 'Europe/Helsinki' ? 'Finland' : timezone.split('/')[0] || timezone || 'Local time';
+  const country = timezone === 'Europe/Helsinki'
+    ? 'Finland'
+    : timezone.split('/')[0] || timezone || 'Local time';
 
-  return `${country} · ${offset} (${offset})`;
+  return `${country} · ${offset}`;
 }
 
 export function getTodayStr(): string {

@@ -1,8 +1,28 @@
 # Changelog
 
+This file tracks the public release history and major user-visible changes for XMSGi.
+
+## Unreleased
+
+### Planned updates
+
+- ongoing maintenance and cleanup
+- documentation and release-process improvements
+- release validation and compatibility checks
+
+## 2.2.7 - 2026-10-07
+
+### Release updates
+
+- Updated release metadata and public download links for the 2.2.7 build.
+- Finalized packaging for the public Windows portable release.
+- Polished the authentication and composer experience for the final release pass.
+
 ## 2.2.3 - 2026-09-28
 
-- Updated project version references and release links.
+### Maintenance
+
+- Updated project version references and public release links.
 
 ## 2.2.0 - 2026-09-23
 
@@ -13,7 +33,7 @@
 - Added the complete Telegram dialog list, including channel visibility fixes.
 - Added migration for the new hidden-chat state.
 - Added a small hover `x` control for removing individual chats.
-- Improved attachment UX with stable composer layout, compact thumbnails, and image long-press preview.
+- Improved attachment UX with stable composer layout, compact thumbnails, and image preview behavior.
 
 ### Packaging and quality
 
@@ -36,19 +56,14 @@
 - Improved encrypted local account storage and IPC validation.
 - Improved error handling, reconnect behavior, and overall application stability.
 
-### Experimental
-
-- The Gemini AI Assistant remains an experimental prototype for evaluation and is not an official feature of this release.
-
 ### Compatibility
 
 - No breaking changes are intended for existing users.
 - Existing Telegram sessions and locally stored scheduled message data are preserved when using Logout.
 - Forget account removes the saved account data from the device.
-- The experimental Gemini prototype requires a user-provided Gemini API key in Settings.
 
 ### Known limitations
 
 - The Windows build is currently distributed as a portable application.
-- Telegram and Gemini availability depends on the corresponding external services.
+- Telegram availability depends on the corresponding external service.
 - A local `.env` file may be used for development credentials, but it is excluded from Git and production packaging. Credentials stored there must never be committed or published.

@@ -4,6 +4,7 @@ import type { Chat } from '@/types';
 interface Props {
   chats: Chat[];
   selectedChat: Chat | null;
+  canSend?: boolean;
   onSelect: (chat: Chat) => void;
   onAddChat: (chat: Chat) => void;
   onRemoveChat: (chat: Chat) => void;
@@ -37,6 +38,7 @@ function ChatAvatar({
 export function ChatPicker({
   chats,
   selectedChat,
+  canSend = true,
   onSelect,
   onAddChat,
   onRemoveChat,
@@ -108,11 +110,18 @@ export function ChatPicker({
         />
         <span className="chat-picker-current-copy">
           <span className="chat-picker-current-name">
-            {selectedChat
-              ? selectedChat.name === 'Saved Messages'
-                ? t('chat.savedMessages')
-                : selectedChat.name
-              : t('chat.choose')}
+            <span>
+              {selectedChat
+                ? selectedChat.name === 'Saved Messages'
+                  ? t('chat.savedMessages')
+                  : selectedChat.name
+                : t('chat.choose')}
+            </span>
+            {canSend === false && (
+              <span className="chat-picker-warning" role="status">
+                {t('chat.cannotSend')}
+              </span>
+            )}
           </span>
         </span>
       </div>

@@ -21,7 +21,7 @@ export type ChatWallpaper = {
   accent: string;
 };
 
-const CHAT_WALLPAPER_STORAGE_KEY = 'awaitmsg-chat-preview-wallpaper';
+const CHAT_WALLPAPER_STORAGE_KEY = 'xmsgi-chat-preview-wallpaper';
 
 type ChatPreviewStandProps = {
   chats: Chat[];
@@ -58,6 +58,10 @@ type SavedWallpaper = {
   wallpapers?: string[];
 };
 
+function dedupeWallpapers(wallpapers: string[]) {
+  return Array.from(new Set(wallpapers.filter((image) => typeof image === 'string' && image.length > 0)));
+}
+
 function loadSavedWallpaper(): SavedWallpaper {
   try {
     const raw = window.localStorage.getItem(CHAT_WALLPAPER_STORAGE_KEY);
@@ -69,8 +73,8 @@ function loadSavedWallpaper(): SavedWallpaper {
       image: typeof saved.image === 'string' ? saved.image : '',
       accent: typeof saved.accent === 'string' ? saved.accent : '',
       wallpapers: Array.isArray(saved.wallpapers)
-        ? saved.wallpapers.filter((image): image is string => typeof image === 'string' && image.length > 0)
-        : typeof saved.image === 'string' && saved.image ? [saved.image] : [],
+        ? dedupeWallpapers(saved.wallpapers)
+        : typeof saved.image === 'string' && saved.image ? dedupeWallpapers([saved.image]) : [],
     };
   } catch {
     return { theme: 'telegram', image: '', accent: '' };
@@ -220,25 +224,21 @@ export function ChatPreviewStand({
   const [lastUploadedWallpaper, setLastUploadedWallpaper] = useState(savedWallpaper.image);
   const [uploadedWallpapers, setUploadedWallpapers] = useState<string[]>(savedWallpaper.wallpapers ?? []);
   const [wallpaperAccent, setWallpaperAccent] = useState(savedWallpaper.accent);
+  const dedupedUploadedWallpapers = useMemo(() => dedupeWallpapers(uploadedWallpapers), [uploadedWallpapers]);
   const wallpaperFileInputRef = useRef<HTMLInputElement | null>(null);
   const [wallpaperPickerOpen, setWallpaperPickerOpen] = useState(false);
 
   useEffect(() => {
     try {
+      const nextWallpapers = dedupeWallpapers(uploadedWallpapers);
       window.localStorage.setItem(
         CHAT_WALLPAPER_STORAGE_KEY,
-        JSON.stringify({ theme: wallpaperTheme, image: lastUploadedWallpaper, accent: wallpaperAccent }),
-      );
-    } catch {
-      // Ignore unavailable or full local storage; the current session still works.
-    }
-  }, [lastUploadedWallpaper, wallpaperAccent, wallpaperTheme]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        CHAT_WALLPAPER_STORAGE_KEY,
-        JSON.stringify({ theme: wallpaperTheme, image: lastUploadedWallpaper, accent: wallpaperAccent, wallpapers: uploadedWallpapers }),
+        JSON.stringify({
+          theme: wallpaperTheme,
+          image: lastUploadedWallpaper,
+          accent: wallpaperAccent,
+          wallpapers: nextWallpapers,
+        }),
       );
     } catch {
       // Keep the current session usable when storage is unavailable.
@@ -304,16 +304,36 @@ export function ChatPreviewStand({
     const reader = new FileReader();
     reader.addEventListener('load', () => {
       if (typeof reader.result === 'string') {
-        setCustomWallpaperImage(reader.result);
-        setLastUploadedWallpaper(reader.result);
-        setUploadedWallpapers((current) => current.includes(reader.result as string) ? current : [...current, reader.result as string]);
+        const nextWallpaper = reader.result;
+        setCustomWallpaperImage(nextWallpaper);
+        setLastUploadedWallpaper(nextWallpaper);
+        setUploadedWallpapers((current) => dedupeWallpapers(current.includes(nextWallpaper) ? current : [...current, nextWallpaper]));
         setWallpaperTheme('custom');
         setWallpaperPickerOpen(false);
-        void readImageAccent(reader.result).then(setWallpaperAccent);
+        void readImageAccent(nextWallpaper).then(setWallpaperAccent);
       }
     });
     reader.readAsDataURL(file);
     event.target.value = '';
+  };
+
+  const handleRemoveWallpaper = (imageToRemove: string) => {
+    const nextWallpapers = dedupeWallpapers(uploadedWallpapers.filter((image) => image !== imageToRemove));
+    setUploadedWallpapers(nextWallpapers);
+
+    if (nextWallpapers.length === 0) {
+      setCustomWallpaperImage('');
+      setLastUploadedWallpaper('');
+      setWallpaperTheme('telegram');
+      return;
+    }
+
+    if (customWallpaperImage === imageToRemove || lastUploadedWallpaper === imageToRemove) {
+      const fallback = nextWallpapers[nextWallpapers.length - 1];
+      setCustomWallpaperImage(fallback);
+      setLastUploadedWallpaper(fallback);
+      setWallpaperTheme('custom');
+    }
   };
 
   const draftBubbleColor = wallpaperTheme === 'graphite'
@@ -342,17 +362,32 @@ export function ChatPreviewStand({
               aria-label="Graphite background"
               title="Graphite background"
             />
-            {uploadedWallpapers.map((image, index) => (
-              <button
-                type="button"
-                key={image}
-                className={`chat-preview-wallpaper-quick-choice is-uploaded ${wallpaperTheme === 'custom' && customWallpaperImage === image ? 'is-selected' : ''}`}
-                onClick={() => { setCustomWallpaperImage(image); setLastUploadedWallpaper(image); setWallpaperTheme('custom'); setWallpaperPickerOpen(false); }}
-                aria-label={`Uploaded background ${index + 1}`}
-                title={`Uploaded background ${index + 1}`}
-              >
-                <img src={image} alt="" />
-              </button>
+            {dedupedUploadedWallpapers.map((image, index) => (
+              <span className="chat-preview-wallpaper-quick-picker-item" key={image}>
+                <button
+                  type="button"
+                  className={`chat-preview-wallpaper-quick-choice is-uploaded ${wallpaperTheme === 'custom' && customWallpaperImage === image ? 'is-selected' : ''}`}
+                  onClick={() => { setCustomWallpaperImage(image); setLastUploadedWallpaper(image); setWallpaperTheme('custom'); setWallpaperPickerOpen(false); }}
+                  aria-label={`Uploaded background ${index + 1}`}
+                  title={`Uploaded background ${index + 1}`}
+                >
+                  <img src={image} alt="" />
+                </button>
+                <button
+                  type="button"
+                  className="chat-preview-wallpaper-remove"
+                  aria-label={`Remove uploaded background ${index + 1}`}
+                  title={`Remove uploaded background ${index + 1}`}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleRemoveWallpaper(image);
+                  }}
+                >
+                  ×
+                </button>
+              </span>
             ))}
             <button
               type="button"

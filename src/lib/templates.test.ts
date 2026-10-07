@@ -8,7 +8,7 @@ import {
 import { loadTemplates, saveTemplates } from './storage';
 import type { Template } from '@/types';
 
-const TEMPLATES_STORAGE_KEY = 'awaitmsg_templates';
+const TEMPLATES_STORAGE_KEY = 'xmsgi_templates';
 
 function createMemoryStorage() {
   const data = new Map<string, string>();

@@ -58,4 +58,23 @@ describe('ChatPreviewStand DOM behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show chats' }));
     expect(onToggleChatList).toHaveBeenCalledTimes(1);
   });
+
+  it('deduplicates uploaded wallpapers and removes them cleanly from the picker', () => {
+    const image = 'data:image/png;base64,abc123';
+    window.localStorage.setItem('xmsgi-chat-preview-wallpaper', JSON.stringify({
+      theme: 'custom',
+      image,
+      accent: '',
+      wallpapers: [image, image],
+    }));
+
+    renderStand();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose chat background' }));
+
+    expect(screen.getAllByRole('button', { name: /^Uploaded background/i })).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove uploaded background 1' }));
+    expect(screen.queryByRole('button', { name: /^Uploaded background/i })).not.toBeInTheDocument();
+  });
 });

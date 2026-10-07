@@ -9,8 +9,8 @@ const packageJson = JSON.parse(
 );
 
 describe('production packaging', () => {
-  it('publishes the XMSGi 2.2.3 portable package metadata', () => {
-    expect(packageJson.version).toBe('2.2.3');
+  it('publishes the XMSGi 2.2.7 portable package metadata', () => {
+    expect(packageJson.version).toBe('2.2.7');
     expect(packageJson.author).toEqual({
       name: 'molodoy01',
       email: 'molodoy98@proton.me'

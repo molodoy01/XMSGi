@@ -3,8 +3,10 @@ import type { Chat, ChatPermissions } from '@/types';
 import {
   loadPersistentChats,
   loadHiddenChats,
+  loadChatPermissions,
   savePersistentChats,
   saveHiddenChats,
+  saveChatPermissions,
 } from '@/lib/storage';
 
 export function useChats({ connected }: { connected: boolean }) {
@@ -12,6 +14,30 @@ export function useChats({ connected }: { connected: boolean }) {
   const [persistentChatsReady, setPersistentChatsReady] = useState(false);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [chatPermissions, setChatPermissions] = useState<Record<string, ChatPermissions>>({});
+
+  const applyChatPermissions = (chatId: string, permissions: ChatPermissions) => {
+    setChatPermissions((current) => {
+      const next = {
+        ...current,
+        [chatId]: permissions,
+      };
+      saveChatPermissions(next);
+      return next;
+    });
+
+    setChats((current) => {
+      const next = current.map((chat) =>
+        chat.id === chatId ? { ...chat, permissions } : chat,
+      );
+
+      if (next !== current) {
+        void savePersistentChats(next);
+      }
+
+      return next;
+    });
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -20,7 +46,22 @@ export function useChats({ connected }: { connected: boolean }) {
 
       const hidden = loadHiddenChats();
       const visibleChats = loadedChats.filter((chat) => !hidden.includes(chat.id));
+      const cachedPermissions = loadChatPermissions();
+      const hydratedPermissions = Object.fromEntries(
+        visibleChats
+          .filter((chat): chat is Chat & { permissions: ChatPermissions } => Boolean(chat.permissions))
+          .map((chat) => [chat.id, chat.permissions]),
+      );
 
+      const mergedPermissions = {
+        ...cachedPermissions,
+        ...hydratedPermissions,
+      };
+
+      setChatPermissions((current) => ({
+        ...current,
+        ...mergedPermissions,
+      }));
       setChats(visibleChats);
 
       if (visibleChats.length > 0) {
@@ -50,7 +91,7 @@ export function useChats({ connected }: { connected: boolean }) {
   }, [selectedChat]);
 
   useEffect(() => {
-    if (!connected || !persistentChatsReady) return;
+    if (!connected || !persistentChatsReady || typeof window.telegram?.getChats !== 'function') return;
 
     window.telegram
       .getChats()
@@ -114,6 +155,8 @@ export function useChats({ connected }: { connected: boolean }) {
           return visibleChats[0] || null;
         });
 
+        if (typeof window.telegram?.getChatAvatar !== 'function') return;
+
         void Promise.all(
           visibleChats.map(async (chat) => {
             try {
@@ -156,12 +199,22 @@ export function useChats({ connected }: { connected: boolean }) {
   }, [connected, persistentChatsReady]);
 
   useEffect(() => {
-    if (!connected || !selectedChat || typeof window.telegram?.getChatPermissions !== 'function') return;
+    if (!selectedChat || typeof window.telegram?.getChatPermissions !== 'function') return;
+
+    const cachedPermissions = selectedChat.permissions ?? chatPermissions[selectedChat.id];
+    if (cachedPermissions) {
+      setChatPermissions((current) => ({
+        ...current,
+        [selectedChat.id]: cachedPermissions,
+      }));
+    }
+
+    if (!connected) return;
 
     let cancelled = false;
     window.telegram.getChatPermissions(selectedChat.id).then((result) => {
       if (cancelled || !result.success || !result.permissions) return;
-      setChatPermissions((current) => ({ ...current, [selectedChat.id]: result.permissions! }));
+      applyChatPermissions(selectedChat.id, result.permissions!);
     }).catch(() => undefined);
 
     return () => {
@@ -170,15 +223,20 @@ export function useChats({ connected }: { connected: boolean }) {
   }, [connected, selectedChat]);
 
   async function refreshChatPermissions(chatId: string): Promise<ChatPermissions | null> {
-    if (typeof window.telegram?.getChatPermissions !== 'function') return null;
+    const cached = chats.find((chat) => chat.id === chatId)?.permissions ?? chatPermissions[chatId];
+    if (cached) {
+      setChatPermissions((current) => ({ ...current, [chatId]: cached }));
+    }
+
+    if (typeof window.telegram?.getChatPermissions !== 'function') return cached ?? null;
 
     try {
       const result = await window.telegram.getChatPermissions(chatId);
-      if (!result.success || !result.permissions) return null;
-      setChatPermissions((current) => ({ ...current, [chatId]: result.permissions! }));
+      if (!result.success || !result.permissions) return cached ?? null;
+      applyChatPermissions(chatId, result.permissions!);
       return result.permissions;
     } catch {
-      return null;
+      return cached ?? null;
     }
   }
 
@@ -243,7 +301,9 @@ export function useChats({ connected }: { connected: boolean }) {
     selectedChat,
     setSelectedChat,
     chatPermissions,
-    selectedChatPermissions: selectedChat ? chatPermissions[selectedChat.id] || null : null,
+    selectedChatPermissions: selectedChat
+      ? chatPermissions[selectedChat.id] || selectedChat.permissions || null
+      : null,
     refreshChatPermissions,
     handleAddChat,
     handleRemoveChat,

@@ -15,7 +15,7 @@ function createAccountStorageAdapter({ fs, path, app, safeStorage, platform = pr
   function getConfigPath() {
     return pathModule.join(
       electron.app.getPath('userData'),
-      'awaitmsg-secure-config.json'
+      'xmsgi-secure-config.json'
     );
   }
 

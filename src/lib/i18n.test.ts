@@ -29,6 +29,6 @@ describe('i18n', () => {
     act(() => result.current.setLocale('ru'));
     expect(result.current.locale).toBe('ru');
     expect(result.current.t('settings.title')).toBe('Настройки');
-    expect(window.localStorage.getItem('awaitmsg_locale')).toBe('ru');
+    expect(window.localStorage.getItem('xmsgi_locale')).toBe('ru');
   });
 });

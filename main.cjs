@@ -30,11 +30,11 @@ const { readChats, writeChats } = require('./chat-storage.cjs');
 
 const SECURE_CONFIG_PATH = path.join(
   app.getPath('userData'),
-  'awaitmsg-secure-config.json'
+  'xmsgi-secure-config.json'
 );
 const CHAT_STORAGE_PATH = path.join(
   app.getPath('userData'),
-  'awaitmsg-chats.json'
+  'xmsgi-chats.json'
 );
 
 let mainWindow = null;

@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const { createAccountStorageAdapter } = require('./telegram-account-storage.cjs');
 
 function getConfigPath() {
-  return 'C:\\temp\\awaitmsg-secure-config.json';
+  return 'C:\\temp\\xmsgi-secure-config.json';
 }
 
 function createFakeStorage(initialConfig = {}, options = {}) {

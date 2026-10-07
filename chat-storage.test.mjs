@@ -17,9 +17,9 @@ afterEach(() => {
 
 describe('Electron chat storage', () => {
   it('persists a search-only channel across a fresh read and keeps its full metadata', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'awaitmsg-chat-storage-'));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'xmsgi-chat-storage-'));
     temporaryDirectories.push(directory);
-    const filePath = path.join(directory, 'userData', 'awaitmsg-chats.json');
+    const filePath = path.join(directory, 'userData', 'xmsgi-chats.json');
     const searchOnlyChannel = {
       id: 'search-only-channel',
       name: 'Search-only channel',
@@ -37,9 +37,9 @@ describe('Electron chat storage', () => {
   });
 
   it('replaces an existing chat record instead of creating a duplicate', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'awaitmsg-chat-storage-'));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'xmsgi-chat-storage-'));
     temporaryDirectories.push(directory);
-    const filePath = path.join(directory, 'awaitmsg-chats.json');
+    const filePath = path.join(directory, 'xmsgi-chats.json');
 
     writeChats(filePath, [
       { id: 'channel-1', name: 'Old name', type: 'channel' },
