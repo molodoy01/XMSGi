@@ -2,7 +2,7 @@
 
 **Telegram message scheduler for Windows, Linux, and macOS.**
 
-![XMSGi Light Theme](../screenshots/01.png)
+![XMSGi](../screenshots/01.png)
 
 XMSGi is a desktop application for working with Telegram messages from your personal account: write, review, schedule, and send content without requiring a Telegram bot for the main workflow.
 
@@ -77,6 +77,14 @@ npm run build
 ```bash
 npm run dist
 ```
+
+## Screenshots
+
+![XMSGi Dark Theme](../screenshots/02.png)
+
+![XMSGi Scheduler](../screenshots/03.png)
+
+![XMSGi](../screenshots/04.png)
 
 ## Privacy & Security
 
