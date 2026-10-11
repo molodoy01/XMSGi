@@ -1,0 +1,13 @@
+﻿node_modules/
+dist/
+.env
+.env.*
+!.env.example
+release/
+release-pkg/
+vitest-*.json
+*.session
+*session*
+*.log
+
+website/files/

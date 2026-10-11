@@ -1,13 +1,17 @@
-﻿node_modules/
+﻿# OS / editor artifacts
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Cline shared workspace marker (not part of the repository)
+AGENTS.md
+
+# Dependencies / build output (authoritative rules live in XMSGi/.gitignore)
+node_modules/
 dist/
+release/
+release-pkg/
 .env
 .env.*
 !.env.example
-release/
-release-pkg/
-vitest-*.json
-*.session
-*session*
 *.log
-
-website/files/
