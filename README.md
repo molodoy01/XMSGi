@@ -2,6 +2,8 @@
 
 **Telegram Message Scheduler** — удобное десктопное приложение для планирования и отправки сообщений в Telegram без использования ботов.
 
+![XMSGi Light Theme](screenshots/01.png)
+
 ### 📁 Структура репозитория
 
 - **`XMSGi/`** — основная папка приложения (исходный код, Electron, React, Telegram интеграция)
