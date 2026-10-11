@@ -2,7 +2,7 @@
 
 **Telegram message scheduler for Windows, Linux, and macOS.**
 
-![XMSGi](screenshots/01.png)
+![XMSGi](../screenshots/01.png)
 
 XMSGi is a desktop application for working with Telegram messages from your personal account: write, review, schedule, and send content without requiring a Telegram bot for the main workflow.
 
@@ -80,11 +80,11 @@ npm run dist
 
 ## Screenshots
 
-![XMSGi Dark Theme](screenshots/02.png)
+![XMSGi Dark Theme](../screenshots/02.png)
 
-![XMSGi Scheduler](screenshots/03.png)
+![XMSGi Scheduler](../screenshots/03.png)
 
-![XMSGi](screenshots/04.png)
+![XMSGi](../screenshots/04.png)
 
 ## Privacy & Security
 
@@ -92,7 +92,7 @@ Telegram session data is stored locally and protected using Electron secure stor
 
 XMSGi does not depend on a Telegram bot for its core scheduling flow. The project also includes IPC validation and secure-config handling for local account storage.
 
-See the dedicated [SECURITY.md](SECURITY.md) for vulnerability reporting and security expectations.
+See the dedicated [SECURITY.md](../SECURITY.md) for vulnerability reporting and security expectations.
 
 ## Quality & Coverage
 
@@ -102,34 +102,37 @@ The project currently covers approximately 210+ automated tests across chat, sch
 
 This repository is organized around a few purpose-specific documents:
 
-- [README.md](README.md) — project overview, installation, and usage
-- [CONTRIBUTING.md](CONTRIBUTING.md) — contribution workflow and PR expectations
-- [CHANGELOG.md](CHANGELOG.md) — release history and feature notes
-- [SECURITY.md](SECURITY.md) — security policy and reporting flow
-- [docs/BUILDING.md](docs/BUILDING.md) — build, test, and release workflow
-- [LICENSE](LICENSE) — project license
+- [README.md](../README.md) — project overview, installation, and usage
+- [CONTRIBUTING.md](../CONTRIBUTING.md) — contribution workflow and PR expectations
+- [CHANGELOG.md](../CHANGELOG.md) — release history and feature notes
+- [SECURITY.md](../SECURITY.md) — security policy and reporting flow
+- [docs/BUILDING.md](../docs/BUILDING.md) — build, test, and release workflow
+- [LICENSE](../LICENSE) — project license
 
 ## Repository structure
 
 ```text
 .
+├── .github/          # CI/CD workflows
+├── docs/             # build & release documentation
+├── screenshots/      # UI screenshots
+├── website/          # project website (GitHub Pages)
+├── XMSGi/            # the desktop application
+│   ├── src/          # React UI sources
+│   ├── build/        # application icons
+│   ├── main.cjs      # Electron entry point
+│   ├── preload.cjs   # Electron preload script
+│   ├── package.json  # app metadata & scripts
+│   └── ...
 ├── README.md
 ├── CHANGELOG.md
 ├── SECURITY.md
 ├── CONTRIBUTING.md
-├── LICENSE
-├── docs/
-│   └── BUILDING.md
-├── src/
-├── release/
-├── website/
-├── screenshots/
-├── package.json
-└── ...
+└── LICENSE
 ```
 
 ## Open Source
 
 XMSGi is open source and available on GitHub.
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).
