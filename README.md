@@ -1,135 +1,32 @@
 # XMSGi
 
-**Telegram message scheduler for Windows, Linux, and macOS.**
+**Telegram Message Scheduler** — удобное десктопное приложение для планирования и отправки сообщений в Telegram без использования ботов.
 
-![XMSGi](screenshots/01.png)
+### 📁 Структура репозитория
 
-XMSGi is a desktop application for working with Telegram messages from your personal account: write, review, schedule, and send content without requiring a Telegram bot for the main workflow.
+- **`XMSGi/`** — основная папка приложения (исходный код, Electron, React, Telegram интеграция)
+- `docs/` — документация по сборке и разработке
+- `screenshots/` — скриншоты интерфейса
+- `website/` — сайт проекта (если актуален)
+- `.github/` — GitHub workflows
 
-## Overview
+### 🚀 Быстрый старт
 
-- Send messages immediately or schedule them for a chosen date and time.
-- Manage chat and dialog selection inside the desktop workspace.
-- Keep Telegram session data locally on the device.
-- Use system-level secure storage where the operating system supports it.
-- Publish portable release builds for Windows and package builds for Linux/macOS.
-
-## Project status
-
-XMSGi is currently in active desktop application development and release validation. The project is designed for practical Telegram scheduling use, with emphasis on stability, packaging quality, and local session safety.
-
-## Features
-
-- Telegram chat and dialog selection
-- Instant and scheduled sending
-- Attachment support for message composition
-- Local session save and logout flows
-- Forget-account cleanup for saved session data
-- Cross-platform desktop distribution
-- Security-aware local storage and IPC validation
-
-## Download
-
-**XMSGi 2.2.7** is available for Windows, Linux, and macOS.
-
-### Windows
-
-Portable `.exe` build — no installation required.
-
-### Linux
-
-AppImage and Debian `.deb` packages are available.
-
-### macOS
-
-DMG package for macOS users.
-
-**[Download XMSGi 2.2.7 from GitHub Releases](https://github.com/molodoy01/XMSGi/releases/tag/v2.2.7)**
-
-## Getting Started
-
-### Requirements
-
-- Node.js 18+
-- npm
-- Electron-compatible desktop environment for local app run
-
-### Install
+Перейдите в папку приложения и следуйте инструкциям:
 
 ```bash
+cd XMSGi
 npm install
+npm run dev
 ```
 
-### Run in development mode
+### 📥 Скачать готовую версию
 
-```bash
-npm start
-```
+**[Перейти к релизу →](https://github.com/molodoy01/XMSGi/releases)**
 
-### Production build
+Полная документация, инструкции по сборке и все детали находятся внутри папки **`XMSGi/`** — смотрите `XMSGi/README.md`.
 
-```bash
-npm run build
-```
+---
 
-### Package Windows release
-
-```bash
-npm run dist
-```
-
-## Screenshots
-
-![XMSGi Dark Theme](screenshots/02.png)
-
-![XMSGi Scheduler](screenshots/03.png)
-
-![XMSGi](screenshots/04.png)
-
-## Privacy & Security
-
-Telegram session data is stored locally and protected using Electron secure storage when available.
-
-XMSGi does not depend on a Telegram bot for its core scheduling flow. The project also includes IPC validation and secure-config handling for local account storage.
-
-See the dedicated [SECURITY.md](SECURITY.md) for vulnerability reporting and security expectations.
-
-## Quality & Coverage
-
-The project currently covers approximately 210+ automated tests across chat, scheduler, auth, storage, and UI flows.
-
-## Project Documentation
-
-This repository is organized around a few purpose-specific documents:
-
-- [README.md](README.md) — project overview, installation, and usage
-- [CONTRIBUTING.md](CONTRIBUTING.md) — contribution workflow and PR expectations
-- [CHANGELOG.md](CHANGELOG.md) — release history and feature notes
-- [SECURITY.md](SECURITY.md) — security policy and reporting flow
-- [docs/BUILDING.md](docs/BUILDING.md) — build, test, and release workflow
-- [LICENSE](LICENSE) — project license
-
-## Repository structure
-
-```text
-.
-├── README.md
-├── CHANGELOG.md
-├── SECURITY.md
-├── CONTRIBUTING.md
-├── LICENSE
-├── docs/
-│   └── BUILDING.md
-├── src/
-├── release/
-├── website/
-├── screenshots/
-├── package.json
-└── ...
-```
-
-## Open Source
-
-XMSGi is open source and available on GitHub.
-
-This project is licensed under the [MIT License](LICENSE).
+**Лицензия:** MIT  
+**Автор:** molodoy01
